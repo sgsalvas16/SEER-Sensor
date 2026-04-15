@@ -1,0 +1,50 @@
+---
+name: Redirect main PRs from forks
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  redirect:
+    name: Close and redirect to development
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Comment on and close PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          BODY_FILE="$(mktemp)"
+          CONTRIBUTING_URL="https://github.com/$REPO/blob/development/.github/CONTRIBUTING.md"
+
+          cat > "$BODY_FILE" <<EOF
+          Hi @$PR_AUTHOR — thanks for the contribution!
+
+          External PRs must target the \`development\` branch, not \`main\`.
+          See [CONTRIBUTING.md]($CONTRIBUTING_URL#creating-a-pull-request)
+          for the full workflow.
+
+          **To fix:**
+
+          1. Open a new PR with base \`development\` and head \`$PR_AUTHOR:$HEAD_REF\`
+          2. Or from the CLI:
+             \`\`\`bash
+             gh pr create --repo $REPO --base development \\
+               --head $PR_AUTHOR:$HEAD_REF
+             \`\`\`
+
+          This PR will be closed automatically. Your branch and commits
+          are untouched — just re-open against \`development\`.
+          EOF
+
+          gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file "$BODY_FILE"
+          gh pr close "$PR_NUMBER" --repo "$REPO"
