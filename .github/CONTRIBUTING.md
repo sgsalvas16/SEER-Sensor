@@ -84,6 +84,15 @@ git log --show-signature -1
 
 You should see `Good "git" signature for your@email.com`.
 
+> ⚠️ **Already committed before setting up signing?** Those commits are unsigned and the PR merge will fail. After configuring signing, resign them:
+>
+> ```bash
+> git rebase --exec 'git commit --amend --no-edit -S' HEAD~N
+> git push --force-with-lease
+> ```
+>
+> Replace `N` with the number of unsigned commits on your branch. Verify with `git log --show-signature`.
+
 ### 3. Install Linting Tools
 
 Our CI runs these checks on every PR. Install them locally to catch issues early:
@@ -121,6 +130,8 @@ type/your-github-username/short-description
 ```
 
 **Allowed types:** `feat`, `fix`, `hotfix`, `chore`, `refactor`
+
+> ⚠️ Use `feat/` — **not** `feature/`. Our ruleset rejects `feature/...` branches. The regex is strict: `^(feat|fix|hotfix|chore|refactor)/[a-zA-Z0-9_-]+/[a-z0-9][a-z0-9-]+$`.
 
 **Examples:**
 
@@ -255,6 +266,55 @@ SEER-Sensor/
 - **Python**: Ruff enforced. Line length 80 (Google Python Style). Import sorting enabled. Target Python 3.11. Bandit SAST scanning on all Python code.
 - **Bash**: ShellCheck enforced at warning severity. All scripts use `#!/usr/bin/env bash`.
 - **YAML**: yamllint enforced. Document start (`---`) required. Max line length 160.
+
+## Troubleshooting
+
+Before reaching out, try these diagnostics. Most "permission" or "access" issues are one of the scenarios below.
+
+### Check your remotes
+
+```bash
+git remote -v
+```
+
+Expected:
+
+```text
+origin    git@github.com:YOUR_USERNAME/SEER-Sensor.git (fetch)
+origin    git@github.com:YOUR_USERNAME/SEER-Sensor.git (push)
+upstream  git@github.com:EVR-RDY-Projects/SEER-Sensor.git (fetch)
+upstream  git@github.com:EVR-RDY-Projects/SEER-Sensor.git (push)
+```
+
+If `origin` points to `EVR-RDY-Projects/SEER-Sensor`, you cloned upstream directly instead of your fork. Fix:
+
+```bash
+git remote set-url origin git@github.com:YOUR_USERNAME/SEER-Sensor.git
+```
+
+### Check commit signatures
+
+```bash
+git log --show-signature -1
+```
+
+Must say `Good "ssh" signature`. If it says `no signature` or the commit has no signature block, your git signing isn't active — revisit [§2 Commit Signing Setup](#2-commit-signing-setup).
+
+### Common errors
+
+| Error | Cause | Fix |
+|---|---|---|
+| `Permission denied (publickey)` on push | SSH key not added to GitHub, or wrong key loaded | `ssh -T git@github.com` to test auth; add key to GitHub; `ssh-add ~/.ssh/YOUR_KEY` |
+| `remote: Permission to EVR-RDY-Projects/SEER-Sensor.git denied` | You pushed to upstream. Triage role cannot push to upstream. | Fix `origin` to point to your fork (see above) |
+| PR shows "commits are not signed" | Signing configured after committing | Rebase-amend-sign (see signing §2 warning) |
+| `gh pr create` fails with auth error | `gh` CLI not authenticated | `gh auth login` |
+| PR targets `main` and won't merge | External PRs must target `development` | Edit PR base in GitHub UI: click "Edit" next to title, change base to `development` |
+
+### Fork default branch
+
+Your fork's default branch is whatever upstream's default was when you forked. Our default is `development`, and all external PRs target `development`. When using GitHub's "Compare & pull request" banner, verify **base: development** before submitting.
+
+If your fork still shows `main` as default (older fork), you can change it in your fork's settings: **Settings → Branches → Default branch → development**.
 
 ## Questions?
 
