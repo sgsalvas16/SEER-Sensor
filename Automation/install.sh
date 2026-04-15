@@ -49,8 +49,8 @@ if [[ ! -f /opt/seer/etc/seer.yml ]]; then
 fi
 
 # install wrapper (standardize to /usr/local/bin)
-echo "Installing /usr/local/bin/seer-capture.sh"
-sudo install -m 0755 "$REPO_ROOT/Automation/bin/seer-capture.sh" /usr/local/bin/seer-capture.sh
+echo "Installing /usr/local/bin/seer_capture.py"
+sudo install -m 0755 "$REPO_ROOT/Automation/bin/seer_capture.py" /usr/local/bin/seer_capture.py
 
 # install unit
 echo "Installing systemd unit"
@@ -280,10 +280,10 @@ PY
 )
 fi
 
-if [[ -f "$REPO_ROOT/Automation/bin/seer-wait-link.sh" ]]; then
-  echo "Installing seer-wait-link helper"
-  sudo install -m 0755 "$REPO_ROOT/Automation/bin/seer-wait-link.sh" /usr/local/bin/seer-wait-link.sh || true
-  sudo chown root:root /usr/local/bin/seer-wait-link.sh || true
+if [[ -f "$REPO_ROOT/Automation/bin/seer_wait_link.py" ]]; then
+  echo "Installing seer_wait_link helper"
+  sudo install -m 0755 "$REPO_ROOT/Automation/bin/seer_wait_link.py" /usr/local/bin/seer_wait_link.py || true
+  sudo chown root:root /usr/local/bin/seer_wait_link.py || true
   echo "Writing systemd drop-in for seer-capture to wait for link"
   sudo mkdir -p /etc/systemd/system/seer-capture@.service.d || true
   sudo tee /etc/systemd/system/seer-capture@.service.d/wait-link.conf >/dev/null <<EOS
@@ -292,7 +292,7 @@ Description=Wait for link before starting capture
 Before=seer-capture@%i.service
 
 [Service]
-ExecStartPre=/usr/local/bin/seer-wait-link.sh %i ${WAIT_LINK_TIMEOUT}
+ExecStartPre=/usr/bin/python3 /usr/local/bin/seer_wait_link.py %i ${WAIT_LINK_TIMEOUT}
 EOS
   sudo systemctl daemon-reload || true
 fi
@@ -337,11 +337,11 @@ sudo journalctl -u seer-capture@${INTERFACE}.service -n 30 --no-pager || true
 echo "Install finished. If setup wrote /opt/seer/etc/seer.yml, review it and adjust as needed."
 
 # Install verifier and run it
-if [[ -f "$REPO_ROOT/Automation/bin/seer-verify-install.sh" ]]; then
-  echo "Installing verifier to /usr/local/bin/seer-verify-install.sh"
-  sudo install -m 0755 "$REPO_ROOT/Automation/bin/seer-verify-install.sh" /usr/local/bin/seer-verify-install.sh
+if [[ -f "$REPO_ROOT/Automation/bin/seer_verify_install.py" ]]; then
+  echo "Installing verifier to /usr/local/bin/seer_verify_install.py"
+  sudo install -m 0755 "$REPO_ROOT/Automation/bin/seer_verify_install.py" /usr/local/bin/seer_verify_install.py
   echo "Running post-install verification (this may trigger mover once)"
-  if ! timeout "${VERIFY_TIMEOUT:-120s}" sudo /usr/local/bin/seer-verify-install.sh; then
+  if ! timeout "${VERIFY_TIMEOUT:-120s}" sudo /usr/bin/python3 /usr/local/bin/seer_verify_install.py; then
     if [[ $ASSUME_YES -eq 1 ]]; then
       echo "WARNING: Post-install verification failed or timed out. Check seer-move-oldest and seer-capture logs." >&2
     else
