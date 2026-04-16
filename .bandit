@@ -12,6 +12,7 @@
 # B602: subprocess_popen_with_shell_equals_true - intentional shell commands
 # B603: subprocess_without_shell_equals_true - intentional subprocess use
 # B605: start_process_with_a_shell - intentional os.system calls for TUI
+# B606: start_process_with_no_shell - intentional os.execvp/execvpe for process replacement
 # B607: start_process_with_partial_path - sudo/system commands
 # B609: linux_commands_wildcard_injection - controlled admin context
-skips = B104,B108,B110,B112,B310,B324,B404,B602,B603,B605,B607,B609
+skips = B104,B108,B110,B112,B310,B324,B404,B602,B603,B605,B606,B607,B609
