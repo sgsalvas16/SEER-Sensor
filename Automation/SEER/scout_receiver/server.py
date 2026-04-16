@@ -144,22 +144,14 @@ class ScoutReceiverServer:
                 processing_time = time.time() - start_time
 
                 # Log at debug level for health checks
-                log_func = (
-                    logger.debug
-                    if request.path == "/scout/health"
-                    else logger.info
-                )
-                log_func(
-                    f"{request.method} {request.path} -> {response.status} ({processing_time * 1000:.1f}ms)"
-                )
+                log_func = logger.debug if request.path == "/scout/health" else logger.info
+                log_func(f"{request.method} {request.path} -> {response.status} ({processing_time * 1000:.1f}ms)")
 
                 return response
 
             except Exception as e:
                 processing_time = time.time() - start_time
-                logger.error(
-                    f"{request.method} {request.path} -> ERROR: {e} ({processing_time * 1000:.1f}ms)"
-                )
+                logger.error(f"{request.method} {request.path} -> ERROR: {e} ({processing_time * 1000:.1f}ms)")
                 raise
 
         self.app.middlewares.append(logging_middleware)
@@ -175,9 +167,7 @@ class ScoutReceiverServer:
             # Extract headers
             _content_type = request.headers.get("Content-Type", "")  # noqa: F841
             data_size = int(request.headers.get("Content-Length", 0))
-            agent_version = request.headers.get(
-                "X-Scout-Agent-Version", "unknown"
-            )
+            agent_version = request.headers.get("X-Scout-Agent-Version", "unknown")
             host_id = request.headers.get("X-Scout-Host-ID", "unknown")
             data_type = request.headers.get("X-Scout-Data-Type", "unknown")
             checksum = request.headers.get("X-Scout-Checksum", "")
@@ -208,16 +198,10 @@ class ScoutReceiverServer:
             # Verify checksum if provided
             # NOTE: Checksum must be calculated on the raw request body (text),
             # not on re-serialized JSON, to match what the SCOUT Agent sends
-            if checksum and self.config.get(
-                "validation.verify_checksums", True
-            ):
-                checksum_result = self.validator.validate_checksum(
-                    text, checksum
-                )
+            if checksum and self.config.get("validation.verify_checksums", True):
+                checksum_result = self.validator.validate_checksum(text, checksum)
                 if not checksum_result.is_valid:
-                    logger.warning(
-                        f"Checksum mismatch from {client_ip}: {checksum_result.message}"
-                    )
+                    logger.warning(f"Checksum mismatch from {client_ip}: {checksum_result.message}")
 
             # Count records
             record_count = 1
@@ -301,9 +285,7 @@ class ScoutReceiverServer:
             }
 
             if not validation_result.is_valid:
-                response_data["validation_warnings"] = [
-                    validation_result.message
-                ]
+                response_data["validation_warnings"] = [validation_result.message]
 
             return web.json_response(response_data, status=200)
 
@@ -412,9 +394,7 @@ class ScoutReceiverServer:
             return web.json_response(
                 {
                     "status": "success" if result.get("success") else "error",
-                    "message": f"Scenario '{scenario}' activated"
-                    if result.get("success")
-                    else result.get("error"),
+                    "message": f"Scenario '{scenario}' activated" if result.get("success") else result.get("error"),
                     "result": result,
                 }
             )
@@ -505,14 +485,8 @@ class ScoutReceiverServer:
         def run_cmd(cmd):
             """Run a command and return stdout."""
             try:
-                result = subprocess.run(
-                    cmd, capture_output=True, text=True, timeout=5
-                )
-                return (
-                    result.stdout.strip()
-                    if result.returncode == 0
-                    else result.stderr.strip()
-                )
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+                return result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
             except Exception:
                 return "unknown"
 
@@ -595,9 +569,7 @@ class ScoutReceiverServer:
         # Export drive status
         hs_state = read_hotswap_state()
         drive_present = hs_state.get("drive_present", False)
-        mount_candidates = cfg.get("export", {}).get(
-            "mount_candidates", ["/mnt/seer_external"]
-        )
+        mount_candidates = cfg.get("export", {}).get("mount_candidates", ["/mnt/seer_external"])
         active_mount = None
         drive_files = 0
 
@@ -605,9 +577,7 @@ class ScoutReceiverServer:
             if os.path.ismount(candidate):
                 active_mount = candidate
                 try:
-                    drive_files = sum(
-                        1 for _ in Path(candidate).rglob("*.pcap*")
-                    )
+                    drive_files = sum(1 for _ in Path(candidate).rglob("*.pcap*"))
                 except Exception:
                     pass
                 break
@@ -727,12 +697,8 @@ class ScoutReceiverServer:
             try:
                 # Split on }{ and reconstruct individual objects
                 parts = text.replace("}{", "}\n{").split("\n")
-                parsed = [
-                    json.loads(part.strip()) for part in parts if part.strip()
-                ]
-                return (
-                    parsed if len(parsed) > 1 else parsed[0] if parsed else {}
-                )
+                parsed = [json.loads(part.strip()) for part in parts if part.strip()]
+                return parsed if len(parsed) > 1 else parsed[0] if parsed else {}
             except json.JSONDecodeError:
                 pass
 
@@ -765,9 +731,7 @@ class ScoutReceiverServer:
             pass
 
         # Return raw text if all parsing attempts fail
-        logger.warning(
-            f"Could not parse JSON data, returning raw text ({len(text)} bytes)"
-        )
+        logger.warning(f"Could not parse JSON data, returning raw text ({len(text)} bytes)")
         return text
 
     def _add_received_data(self, entry: Dict[str, Any]) -> None:
@@ -1239,9 +1203,7 @@ class ScoutReceiverServer:
 
     # ==================== Server Lifecycle ====================
 
-    async def start(
-        self, host: Optional[str] = None, port: Optional[int] = None
-    ) -> None:
+    async def start(self, host: Optional[str] = None, port: Optional[int] = None) -> None:
         """Start the HTTP server.
 
         Args:
@@ -1266,9 +1228,7 @@ class ScoutReceiverServer:
         site = web.TCPSite(runner, host, port)
         await site.start()
 
-        logger.info(
-            f"Scout Receiver started successfully on http://{host}:{port}"
-        )
+        logger.info(f"Scout Receiver started successfully on http://{host}:{port}")
 
     async def stop(self) -> None:
         """Stop the HTTP server."""

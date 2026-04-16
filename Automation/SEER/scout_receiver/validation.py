@@ -111,9 +111,7 @@ class DataValidator:
 
         try:
             # Check for required fields
-            missing_fields = [
-                f for f in self.ENVELOPE_REQUIRED_FIELDS if f not in data
-            ]
+            missing_fields = [f for f in self.ENVELOPE_REQUIRED_FIELDS if f not in data]
             if missing_fields:
                 self.stats["failed_validations"] += 1
                 self.stats["format_errors"] += 1
@@ -149,8 +147,7 @@ class DataValidator:
                 self.stats["size_errors"] += 1
                 return ValidationResult(
                     False,
-                    f"Data size {data_size} exceeds "
-                    f"maximum {self.max_data_size}",
+                    f"Data size {data_size} exceeds maximum {self.max_data_size}",
                     details,
                 )
 
@@ -159,9 +156,7 @@ class DataValidator:
             if compression not in self.SUPPORTED_COMPRESSIONS:
                 self.stats["failed_validations"] += 1
                 self.stats["compression_errors"] += 1
-                return ValidationResult(
-                    False, f"Unsupported compression: {compression}", details
-                )
+                return ValidationResult(False, f"Unsupported compression: {compression}", details)
 
             # Validate data type (if strict mode)
             if self.strict_mode:
@@ -169,25 +164,17 @@ class DataValidator:
                 if data_type not in self.VALID_DATA_TYPES:
                     self.stats["failed_validations"] += 1
                     self.stats["format_errors"] += 1
-                    return ValidationResult(
-                        False, f"Invalid data type: {data_type}", details
-                    )
+                    return ValidationResult(False, f"Invalid data type: {data_type}", details)
 
             self.stats["successful_validations"] += 1
-            return ValidationResult(
-                True, "Data envelope validation successful", details
-            )
+            return ValidationResult(True, "Data envelope validation successful", details)
 
         except Exception as e:
             self.stats["failed_validations"] += 1
             logger.error(f"Validation exception: {e}")
-            return ValidationResult(
-                False, f"Validation error: {str(e)}", {"exception": str(e)}
-            )
+            return ValidationResult(False, f"Validation error: {str(e)}", {"exception": str(e)})
 
-    def validate_event_data(
-        self, events: List[Dict[str, Any]]
-    ) -> ValidationResult:
+    def validate_event_data(self, events: List[Dict[str, Any]]) -> ValidationResult:
         """Validate event log data format.
 
         Supports both legacy format (type, timestamp) and ASIM schema
@@ -221,9 +208,7 @@ class DataValidator:
         for i, event in enumerate(events):
             if not isinstance(event, dict):
                 details["invalid_events"] += 1
-                details["validation_errors"].append(
-                    {"index": i, "error": "Event must be a dictionary"}
-                )
+                details["validation_errors"].append({"index": i, "error": "Event must be a dictionary"})
                 continue
 
             # Check for ASIM schema fields first
@@ -241,18 +226,12 @@ class DataValidator:
             else:
                 # Check what's missing from either schema
                 missing_asim = [f for f in asim_type_fields if f not in event]
-                missing_legacy = [
-                    f for f in legacy_type_fields if f not in event
-                ]
+                missing_legacy = [f for f in legacy_type_fields if f not in event]
                 details["invalid_events"] += 1
                 details["validation_errors"].append(
                     {
                         "index": i,
-                        "error": (
-                            f"Missing fields "
-                            f"(ASIM: {missing_asim}, "
-                            f"legacy: {missing_legacy})"
-                        ),
+                        "error": (f"Missing fields (ASIM: {missing_asim}, legacy: {missing_legacy})"),
                     }
                 )
 
@@ -265,9 +244,7 @@ class DataValidator:
 
         return ValidationResult(is_valid, message, details)
 
-    def validate_system_data(
-        self, changes: List[Dict[str, Any]]
-    ) -> ValidationResult:
+    def validate_system_data(self, changes: List[Dict[str, Any]]) -> ValidationResult:
         """Validate system state change data format.
 
         Supports both legacy format (type, timestamp) and ASIM schema
@@ -302,9 +279,7 @@ class DataValidator:
         for i, change in enumerate(changes):
             if not isinstance(change, dict):
                 details["invalid_changes"] += 1
-                details["validation_errors"].append(
-                    {"index": i, "error": "Change must be a dictionary"}
-                )
+                details["validation_errors"].append({"index": i, "error": "Change must be a dictionary"})
                 continue
 
             # Check for ASIM schema fields first
@@ -317,9 +292,7 @@ class DataValidator:
                     details["schema_type"] = "ASIM"
                 # Track ASIM schema types
                 event_schema = change.get("EventSchema", "Unknown")
-                details["schema_breakdown"][event_schema] = (
-                    details["schema_breakdown"].get(event_schema, 0) + 1
-                )
+                details["schema_breakdown"][event_schema] = details["schema_breakdown"].get(event_schema, 0) + 1
             elif has_legacy:
                 details["valid_changes"] += 1
                 if details["schema_type"] == "unknown":
@@ -332,11 +305,7 @@ class DataValidator:
                 details["validation_errors"].append(
                     {
                         "index": i,
-                        "error": (
-                            f"Missing fields "
-                            f"(ASIM: {missing_asim}, "
-                            f"legacy: {missing_legacy})"
-                        ),
+                        "error": (f"Missing fields (ASIM: {missing_asim}, legacy: {missing_legacy})"),
                     }
                 )
 
@@ -349,9 +318,7 @@ class DataValidator:
 
         return ValidationResult(is_valid, message, details)
 
-    def decompress_data(
-        self, data: Union[str, bytes], compression: str
-    ) -> Tuple[bool, Union[str, bytes], str]:
+    def decompress_data(self, data: Union[str, bytes], compression: str) -> Tuple[bool, Union[str, bytes], str]:
         """Decompress data using specified compression method.
 
         Args:
@@ -479,18 +446,12 @@ class DataValidator:
                         {
                             "line": i + 1,
                             "error": str(e),
-                            "preview": line[:100] + "..."
-                            if len(line) > 100
-                            else line,
+                            "preview": line[:100] + "..." if len(line) > 100 else line,
                         }
                     )
 
             is_valid = details["invalid_lines"] == 0
-            message = (
-                f"NDJSON validation: "
-                f"{details['valid_lines']} valid, "
-                f"{details['invalid_lines']} invalid"
-            )
+            message = f"NDJSON validation: {details['valid_lines']} valid, {details['invalid_lines']} invalid"
 
             return ValidationResult(is_valid, message, details)
 
@@ -510,12 +471,8 @@ class DataValidator:
         stats = self.stats.copy()
 
         if stats["total_validations"] > 0:
-            stats["success_rate"] = (
-                stats["successful_validations"] / stats["total_validations"]
-            )
-            stats["failure_rate"] = (
-                stats["failed_validations"] / stats["total_validations"]
-            )
+            stats["success_rate"] = stats["successful_validations"] / stats["total_validations"]
+            stats["failure_rate"] = stats["failed_validations"] / stats["total_validations"]
         else:
             stats["success_rate"] = 0.0
             stats["failure_rate"] = 0.0
@@ -528,9 +485,7 @@ class DataValidator:
             self.stats[key] = 0
 
 
-def calculate_checksum(
-    data: Union[str, bytes], algorithm: str = "sha256"
-) -> str:
+def calculate_checksum(data: Union[str, bytes], algorithm: str = "sha256") -> str:
     """Calculate checksum for data.
 
     Args:

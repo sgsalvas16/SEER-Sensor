@@ -45,9 +45,7 @@ class PacketLogger:
     def __init__(self, logger: logging.Logger):
         self.logger = logger
 
-    def log_packet_received(
-        self, source_ip: str, packet_size: int, protocol: str, timestamp: float
-    ) -> None:
+    def log_packet_received(self, source_ip: str, packet_size: int, protocol: str, timestamp: float) -> None:
         """Log packet reception event."""
         self.logger.info(
             f"Packet received from {source_ip}",

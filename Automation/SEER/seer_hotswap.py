@@ -93,9 +93,7 @@ def detect_export_target(candidates, min_free_pct=2):
             stat = os.statvfs(candidate)
             free_bytes = stat.f_bavail * stat.f_frsize
             total_bytes = stat.f_blocks * stat.f_frsize
-            free_pct = (
-                (free_bytes / total_bytes * 100) if total_bytes > 0 else 0
-            )
+            free_pct = (free_bytes / total_bytes * 100) if total_bytes > 0 else 0
 
             if free_pct >= min_free_pct:
                 return (candidate, free_bytes)
@@ -176,9 +174,7 @@ def write_manifest(directory, files_with_hashes):
             f.write("# Format: sha256  filename\n\n")
             for fname, sha in sorted(files_with_hashes):
                 f.write(f"{sha}  {fname}\n")
-        log.info(
-            f"Wrote manifest: {manifest_path} ({len(files_with_hashes)} files)"
-        )
+        log.info(f"Wrote manifest: {manifest_path} ({len(files_with_hashes)} files)")
     except Exception as e:
         log.error(f"Failed to write manifest {manifest_path}: {e}")
 
@@ -203,9 +199,7 @@ def export_batch(backlog_dir, drive_root, rotate_seconds):
     if not pcaps:
         return (0, 0)
 
-    log.info(
-        f"Found {len(pcaps)} PCAPs in backlog; starting export to {drive_root}"
-    )
+    log.info(f"Found {len(pcaps)} PCAPs in backlog; starting export to {drive_root}")
 
     # Organize by date
     date_today = datetime.now().strftime("%Y%m%d")
@@ -234,11 +228,7 @@ def export_batch(backlog_dir, drive_root, rotate_seconds):
             "dst": os.path.join(dest_dir, pcap.name),
             "size": pcap.stat().st_size if pcap.exists() else 0,
             "sha256": sha[:16] if sha else None,
-            "result": "OK"
-            if success
-            else "VERIFY_FAIL"
-            if "mismatch" in (error or "")
-            else "IO_ERROR",
+            "result": "OK" if success else "VERIFY_FAIL" if "mismatch" in (error or "") else "IO_ERROR",
         }
         transfer_log_entries.append(entry)
 
@@ -300,29 +290,19 @@ def main_loop():
     while True:
         try:
             # Detect external drive
-            drive_path, free_bytes = detect_export_target(
-                mount_candidates, min_free_pct
-            )
+            drive_path, free_bytes = detect_export_target(mount_candidates, min_free_pct)
             drive_present = drive_path is not None
 
             # Drive state transition: absent → present
             if drive_present and not last_drive_state:
-                log.info(
-                    f"Drive detected: {drive_path} "
-                    f"(free: {free_bytes // (1024**2)} MB)"
-                )
+                log.info(f"Drive detected: {drive_path} (free: {free_bytes // (1024**2)} MB)")
 
                 # Drain backlog to drive
-                success, fail = export_batch(
-                    backlog_dir, drive_path, rotate_seconds
-                )
+                success, fail = export_batch(backlog_dir, drive_path, rotate_seconds)
                 total_exported += success
 
                 if success > 0:
-                    log.info(
-                        f"Backlog drained: {success} PCAPs "
-                        f"exported, {fail} failed"
-                    )
+                    log.info(f"Backlog drained: {success} PCAPs exported, {fail} failed")
 
                 # Update state to show drive present
                 update_state(

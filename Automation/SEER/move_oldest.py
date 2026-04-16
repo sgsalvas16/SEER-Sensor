@@ -51,9 +51,7 @@ def detect_export_drive():
             stat = os.statvfs(candidate)
             free_bytes = stat.f_bavail * stat.f_frsize
             total_bytes = stat.f_blocks * stat.f_frsize
-            free_pct = (
-                (free_bytes / total_bytes * 100) if total_bytes > 0 else 0
-            )
+            free_pct = (free_bytes / total_bytes * 100) if total_bytes > 0 else 0
 
             if free_pct >= MIN_FREE_PCT:
                 # Use dated subdirectory on drive
