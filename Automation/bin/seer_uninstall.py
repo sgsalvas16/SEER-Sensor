@@ -97,7 +97,7 @@ def run_best_effort(
             stderr=stderr,
             text=text,
         )
-    except Exception:  # Intentional isolation point — matches bash `|| true`.
+    except Exception:  # Intentional isolation point
         return subprocess.CompletedProcess(
             args=cmd,
             returncode=1,
@@ -263,8 +263,7 @@ def remove_file_if_present(path: str) -> None:
 def remove_dir_if_present(path: str) -> None:
     """Remove a directory tree if it exists, using rm -rf for reliability.
 
-    Uses subprocess rm -rf to handle symlinks and special files correctly,
-    matching bash `rm -rf /path || true` behavior.
+    Uses subprocess rm -rf to handle symlinks and special files correctly
 
     Args:
         path: Directory path to remove.
@@ -281,8 +280,7 @@ def load_mount_candidates() -> List[str]:
     """Load export-drive mount candidates from the SEER YAML config.
 
     Returns:
-        List of mount paths, or the default mount if config is missing or
-        unreadable.
+        List of mount paths, or the default mount if config is missing or unreadable.
     """
     config_path = "/opt/seer/etc/seer.yml"
     default_mounts = ["/mnt/seer_external"]
@@ -330,7 +328,10 @@ def purge_export_drive() -> None:
         )
 
         if mounted:
-            say(f"   - Export drive mounted at {mount_path}: purging SEER export files (pcap/)")
+            say(
+                f"   - Export drive mounted at {mount_path}:"
+                f" purging SEER export files (pcap/)"
+            )
 
             pcap_dir = os.path.join(mount_path, "pcap")
             if os.path.isdir(pcap_dir):
@@ -343,12 +344,20 @@ def purge_export_drive() -> None:
             try:
                 for entry in os.listdir(mount_path):
                     entry_path = os.path.join(mount_path, entry)
-                    if os.path.isdir(entry_path) and entry.startswith("pcap") and not os.listdir(entry_path):
+                    if (
+                        os.path.isdir(entry_path)
+                        and entry.startswith("pcap")
+                        and not os.listdir(entry_path)
+                    ):
                         try:
                             os.rmdir(entry_path)
-                        except Exception:  # Intentional — skip dirs we can't remove.
+                        except (
+                            Exception
+                        ):  # Intentional — skip dirs we can't remove.
                             pass
-            except Exception:  # Intentional isolation point — mount may disappear.
+            except (
+                Exception
+            ):  # Intentional isolation point — mount may disappear.
                 pass
         else:
             warn(f"   - {mount_path} not mounted; skipping export purge")
@@ -393,7 +402,8 @@ def main(argv: List[str]) -> int:
     )
     print(
         "  - Remove units   : /etc/systemd/system/seer-capture@.service, "
-        "seer-move-oldest.{service,timer}, seer-zeek@.service, seer-hotswap.service"
+        "seer-move-oldest.{service,timer},"
+        " seer-zeek@.service, seer-hotswap.service"
     )
     print(
         "  - Remove binaries: /usr/local/bin/seer-capture.sh, "
@@ -402,8 +412,14 @@ def main(argv: List[str]) -> int:
     )
 
     if purge:
-        print("  - PURGE config   : /opt/seer (incl. /opt/seer/etc/seer.yml backups)")
-        print("  - PURGE data     : /var/seer and /var/lib/tcpdump/pcap_ring (PCAPs WILL BE DELETED)")
+        print(
+            "  - PURGE config   : /opt/seer"
+            " (incl. /opt/seer/etc/seer.yml backups)"
+        )
+        print(
+            "  - PURGE data     : /var/seer and"
+            " /var/lib/tcpdump/pcap_ring (PCAPs WILL BE DELETED)"
+        )
         print(
             "  - PURGE export   : if an export drive is mounted at configured"
             " mount point(s), delete SEER 'pcap/' contents on that drive"
@@ -423,10 +439,22 @@ def main(argv: List[str]) -> int:
 
     stop_units(capture_units)
     stop_units(zeek_units)
-    stop_units(["seer-move-oldest.timer", "seer-move-oldest.service", "seer-hotswap.service"])
+    stop_units(
+        [
+            "seer-move-oldest.timer",
+            "seer-move-oldest.service",
+            "seer-hotswap.service",
+        ]
+    )
     disable_units(capture_units)
     disable_units(zeek_units)
-    disable_units(["seer-move-oldest.timer", "seer-move-oldest.service", "seer-hotswap.service"])
+    disable_units(
+        [
+            "seer-move-oldest.timer",
+            "seer-move-oldest.service",
+            "seer-hotswap.service",
+        ]
+    )
     ok("services/timer stopped & disabled (where present)")
 
     say("1b) Ensure capture/zeek/hotswap processes are not running")
@@ -435,7 +463,9 @@ def main(argv: List[str]) -> int:
 
     run_best_effort(["pkill", "-x", "tcpdump"], stderr=subprocess.DEVNULL)
     run_best_effort(["pkill", "-x", "zeek"], stderr=subprocess.DEVNULL)
-    run_best_effort(["pkill", "-f", "seer_hotswap.py"], stderr=subprocess.DEVNULL)
+    run_best_effort(
+        ["pkill", "-f", "seer_hotswap.py"], stderr=subprocess.DEVNULL
+    )
 
     for _ in (1, 2, 3, 4, 5):
         time.sleep(1)
@@ -447,11 +477,17 @@ def main(argv: List[str]) -> int:
             break
 
     if is_process_running_exact("tcpdump"):
-        run_best_effort(["pkill", "-9", "-x", "tcpdump"], stderr=subprocess.DEVNULL)
+        run_best_effort(
+            ["pkill", "-9", "-x", "tcpdump"], stderr=subprocess.DEVNULL
+        )
     if is_process_running_exact("zeek"):
-        run_best_effort(["pkill", "-9", "-x", "zeek"], stderr=subprocess.DEVNULL)
+        run_best_effort(
+            ["pkill", "-9", "-x", "zeek"], stderr=subprocess.DEVNULL
+        )
     if is_process_running_pattern("seer_hotswap.py"):
-        run_best_effort(["pkill", "-9", "-f", "seer_hotswap.py"], stderr=subprocess.DEVNULL)
+        run_best_effort(
+            ["pkill", "-9", "-f", "seer_hotswap.py"], stderr=subprocess.DEVNULL
+        )
 
     for path in glob.glob("/run/zeek-*.pid"):
         remove_file_if_present(path)

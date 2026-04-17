@@ -55,24 +55,28 @@ def main(argv: list) -> int:
     cfg = load_config(CONFIG_PATH)
 
     # Config values are nested under 'capture:' block in seer.yml.
-    # Falls back to hard defaults matching the bash script.
+    # Falls back to hard defaults
     capture_cfg = cfg.get("capture", {}) or {}
     rotate = capture_cfg.get("rotate_seconds", 20)
     snaplen = capture_cfg.get("snaplen", 128)
 
-    # Ensure ring directory exists (best effort, matches bash `mkdir -p || true`).
+    # Ensure ring directory exists
     try:
         os.makedirs(RING_DIR, exist_ok=True)
-    except Exception:  # Intentional isolation point — directory may already exist.
+    except (
+        Exception
+    ):  # Intentional isolation point — directory may already exist.
         pass
 
-    # Best-effort chown (matches bash `chown seer:seer ... || true`).
+    # Best-effort chown
     try:
         subprocess.run(["chown", "seer:seer", RING_DIR], check=False)
-    except Exception:  # Intentional isolation point — chown failure is non-fatal.
+    except (
+        Exception
+    ):  # Intentional isolation point — chown failure is non-fatal.
         pass
 
-    # Find tcpdump dynamically; exit 127 if not found (matches bash).
+    # Find tcpdump dynamically; exit 127 if not found.
     tcpdump = shutil.which("tcpdump")
     if not tcpdump:
         print("tcpdump not found in PATH", file=sys.stderr)
@@ -82,7 +86,7 @@ def main(argv: list) -> int:
     # -n  : disable DNS resolution
     # -U  : packet-buffered output (write each packet immediately)
     # -Z  : drop privileges to 'seer' after opening interface
-    # Filename format matches bash: SEER-%Y%m%d-%H%M%S.pcap
+    # Filename format: SEER-%Y%m%d-%H%M%S.pcap
     cmd = [
         tcpdump,
         "-i",
@@ -99,7 +103,7 @@ def main(argv: list) -> int:
         f"{RING_DIR}/SEER-%Y%m%d-%H%M%S.pcap",
     ]
 
-    # Replace process (true exec parity with bash `exec`).
+    # Replace process
     os.execvp(tcpdump, cmd)
 
 

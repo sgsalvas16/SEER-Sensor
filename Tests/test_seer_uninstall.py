@@ -68,7 +68,9 @@ def test_main_user_declines_confirmation_returns_1():
 def test_main_non_root_reexecs_with_sudo():
     """Verify the script re-execs itself under sudo when not running as root."""
     with patch("os.geteuid", return_value=1000):
-        with patch("seer_uninstall.os.execvp", side_effect=SystemExit(0)) as execvp:
+        with patch(
+            "seer_uninstall.os.execvp", side_effect=SystemExit(0)
+        ) as execvp:
             try:
                 su.main(["prog"])
             except SystemExit:
@@ -82,11 +84,22 @@ def test_main_no_purge_completes_successfully_returns_0():
     """Verify full uninstall flow without purge completes and returns 0."""
     with patch("os.geteuid", return_value=0):
         with patch("seer_uninstall.confirm", return_value=True):
-            with patch("seer_uninstall.run_best_effort", side_effect=mock_run_success):
+            with patch(
+                "seer_uninstall.run_best_effort", side_effect=mock_run_success
+            ):
                 with patch("seer_uninstall.sc", side_effect=mock_run_success):
-                    with patch("seer_uninstall.list_loaded_template_units", return_value=[]):
-                        with patch("seer_uninstall.is_process_running_exact", return_value=False):
-                            with patch("seer_uninstall.is_process_running_pattern", return_value=False):
+                    with patch(
+                        "seer_uninstall.list_loaded_template_units",
+                        return_value=[],
+                    ):
+                        with patch(
+                            "seer_uninstall.is_process_running_exact",
+                            return_value=False,
+                        ):
+                            with patch(
+                                "seer_uninstall.is_process_running_pattern",
+                                return_value=False,
+                            ):
                                 with patch("glob.glob", return_value=[]):
                                     with patch("time.sleep"):
                                         with patch("builtins.print") as p:
@@ -105,20 +118,40 @@ def test_main_purge_flag_calls_remove_dir_and_returns_0():
 
     with patch("os.geteuid", return_value=0):
         with patch("seer_uninstall.confirm", return_value=True):
-            with patch("seer_uninstall.run_best_effort", side_effect=mock_run_success):
+            with patch(
+                "seer_uninstall.run_best_effort", side_effect=mock_run_success
+            ):
                 with patch("seer_uninstall.sc", side_effect=mock_run_success):
-                    with patch("seer_uninstall.list_loaded_template_units", return_value=[]):
-                        with patch("seer_uninstall.is_process_running_exact", return_value=False):
-                            with patch("seer_uninstall.is_process_running_pattern", return_value=False):
-                                with patch("seer_uninstall.load_mount_candidates", return_value=[]):
+                    with patch(
+                        "seer_uninstall.list_loaded_template_units",
+                        return_value=[],
+                    ):
+                        with patch(
+                            "seer_uninstall.is_process_running_exact",
+                            return_value=False,
+                        ):
+                            with patch(
+                                "seer_uninstall.is_process_running_pattern",
+                                return_value=False,
+                            ):
+                                with patch(
+                                    "seer_uninstall.load_mount_candidates",
+                                    return_value=[],
+                                ):
                                     with patch(
                                         "seer_uninstall.remove_dir_if_present",
                                         side_effect=remove_dir_mock,
                                     ):
-                                        with patch("glob.glob", return_value=[]):
+                                        with patch(
+                                            "glob.glob", return_value=[]
+                                        ):
                                             with patch("time.sleep"):
-                                                with patch("builtins.print") as p:
-                                                    rc = su.main(["prog", "--purge"])
+                                                with patch(
+                                                    "builtins.print"
+                                                ) as p:
+                                                    rc = su.main(
+                                                        ["prog", "--purge"]
+                                                    )
 
     assert rc == 0
     p.assert_any_call("  \u2714 config/data purged")
@@ -134,11 +167,22 @@ def test_main_lingering_processes_receive_sigkill_escalation():
 
     with patch("os.geteuid", return_value=0):
         with patch("seer_uninstall.confirm", return_value=True):
-            with patch("seer_uninstall.run_best_effort", side_effect=mock_run_success) as run_mock:
+            with patch(
+                "seer_uninstall.run_best_effort", side_effect=mock_run_success
+            ) as run_mock:
                 with patch("seer_uninstall.sc", side_effect=mock_run_success):
-                    with patch("seer_uninstall.list_loaded_template_units", return_value=[]):
-                        with patch("seer_uninstall.is_process_running_exact", side_effect=proc_mock):
-                            with patch("seer_uninstall.is_process_running_pattern", return_value=True):
+                    with patch(
+                        "seer_uninstall.list_loaded_template_units",
+                        return_value=[],
+                    ):
+                        with patch(
+                            "seer_uninstall.is_process_running_exact",
+                            side_effect=proc_mock,
+                        ):
+                            with patch(
+                                "seer_uninstall.is_process_running_pattern",
+                                return_value=True,
+                            ):
                                 with patch("glob.glob", return_value=[]):
                                     with patch("time.sleep"):
                                         su.main(["prog"])
@@ -160,15 +204,28 @@ def test_main_unmounted_export_drive_warns_to_stderr(capsys: object) -> None:
         with patch("seer_uninstall.confirm", return_value=True):
             with patch("seer_uninstall.run_best_effort", side_effect=run_mock):
                 with patch("seer_uninstall.sc", side_effect=mock_run_success):
-                    with patch("seer_uninstall.list_loaded_template_units", return_value=[]):
-                        with patch("seer_uninstall.is_process_running_exact", return_value=False):
-                            with patch("seer_uninstall.is_process_running_pattern", return_value=False):
+                    with patch(
+                        "seer_uninstall.list_loaded_template_units",
+                        return_value=[],
+                    ):
+                        with patch(
+                            "seer_uninstall.is_process_running_exact",
+                            return_value=False,
+                        ):
+                            with patch(
+                                "seer_uninstall.is_process_running_pattern",
+                                return_value=False,
+                            ):
                                 with patch(
                                     "seer_uninstall.load_mount_candidates",
                                     return_value=["/mnt/test"],
                                 ):
-                                    with patch("seer_uninstall.remove_dir_if_present"):
-                                        with patch("glob.glob", return_value=[]):
+                                    with patch(
+                                        "seer_uninstall.remove_dir_if_present"
+                                    ):
+                                        with patch(
+                                            "glob.glob", return_value=[]
+                                        ):
                                             with patch("time.sleep"):
                                                 su.main(["prog", "--purge"])
 
@@ -188,9 +245,18 @@ def test_main_binary_removal_calls_rm_for_installed_paths():
         with patch("seer_uninstall.confirm", return_value=True):
             with patch("seer_uninstall.run_best_effort", side_effect=run_mock):
                 with patch("seer_uninstall.sc", side_effect=mock_run_success):
-                    with patch("seer_uninstall.list_loaded_template_units", return_value=[]):
-                        with patch("seer_uninstall.is_process_running_exact", return_value=False):
-                            with patch("seer_uninstall.is_process_running_pattern", return_value=False):
+                    with patch(
+                        "seer_uninstall.list_loaded_template_units",
+                        return_value=[],
+                    ):
+                        with patch(
+                            "seer_uninstall.is_process_running_exact",
+                            return_value=False,
+                        ):
+                            with patch(
+                                "seer_uninstall.is_process_running_pattern",
+                                return_value=False,
+                            ):
                                 with patch("glob.glob", return_value=[]):
                                     with patch("time.sleep"):
                                         su.main(["prog"])
@@ -201,11 +267,21 @@ def test_main_binary_removal_calls_rm_for_installed_paths():
 def test_main_yes_flag_skips_confirmation_prompt():
     """Verify --yes bypasses the interactive confirmation prompt."""
     with patch("os.geteuid", return_value=0):
-        with patch("seer_uninstall.run_best_effort", side_effect=mock_run_success):
+        with patch(
+            "seer_uninstall.run_best_effort", side_effect=mock_run_success
+        ):
             with patch("seer_uninstall.sc", side_effect=mock_run_success):
-                with patch("seer_uninstall.list_loaded_template_units", return_value=[]):
-                    with patch("seer_uninstall.is_process_running_exact", return_value=False):
-                        with patch("seer_uninstall.is_process_running_pattern", return_value=False):
+                with patch(
+                    "seer_uninstall.list_loaded_template_units", return_value=[]
+                ):
+                    with patch(
+                        "seer_uninstall.is_process_running_exact",
+                        return_value=False,
+                    ):
+                        with patch(
+                            "seer_uninstall.is_process_running_pattern",
+                            return_value=False,
+                        ):
                             with patch("glob.glob", return_value=[]):
                                 with patch("time.sleep"):
                                     with patch("builtins.input") as mock_input:
@@ -218,11 +294,21 @@ def test_main_yes_flag_skips_confirmation_prompt():
 def test_main_short_y_flag_skips_confirmation_prompt():
     """Verify -y is accepted as an alias for --yes."""
     with patch("os.geteuid", return_value=0):
-        with patch("seer_uninstall.run_best_effort", side_effect=mock_run_success):
+        with patch(
+            "seer_uninstall.run_best_effort", side_effect=mock_run_success
+        ):
             with patch("seer_uninstall.sc", side_effect=mock_run_success):
-                with patch("seer_uninstall.list_loaded_template_units", return_value=[]):
-                    with patch("seer_uninstall.is_process_running_exact", return_value=False):
-                        with patch("seer_uninstall.is_process_running_pattern", return_value=False):
+                with patch(
+                    "seer_uninstall.list_loaded_template_units", return_value=[]
+                ):
+                    with patch(
+                        "seer_uninstall.is_process_running_exact",
+                        return_value=False,
+                    ):
+                        with patch(
+                            "seer_uninstall.is_process_running_pattern",
+                            return_value=False,
+                        ):
                             with patch("glob.glob", return_value=[]):
                                 with patch("time.sleep"):
                                     rc = su.main(["prog", "-y"])
@@ -239,15 +325,21 @@ def test_main_discovered_template_units_are_stopped():
 
     with patch("os.geteuid", return_value=0):
         with patch("seer_uninstall.confirm", return_value=True):
-            with patch("seer_uninstall.run_best_effort", side_effect=mock_run_success):
+            with patch(
+                "seer_uninstall.run_best_effort", side_effect=mock_run_success
+            ):
                 with patch("seer_uninstall.sc", side_effect=mock_run_success):
                     with patch(
                         "seer_uninstall.list_loaded_template_units",
                         side_effect=lambda p: (
-                            ["seer-capture@eth0.service"] if "capture" in p else ["seer-zeek@eth0.service"]
+                            ["seer-capture@eth0.service"]
+                            if "capture" in p
+                            else ["seer-zeek@eth0.service"]
                         ),
                     ):
-                        with patch("seer_uninstall.stop_units", side_effect=stop_mock):
+                        with patch(
+                            "seer_uninstall.stop_units", side_effect=stop_mock
+                        ):
                             with patch("seer_uninstall.disable_units"):
                                 with patch(
                                     "seer_uninstall.is_process_running_exact",
@@ -257,7 +349,9 @@ def test_main_discovered_template_units_are_stopped():
                                         "seer_uninstall.is_process_running_pattern",
                                         return_value=False,
                                     ):
-                                        with patch("glob.glob", return_value=[]):
+                                        with patch(
+                                            "glob.glob", return_value=[]
+                                        ):
                                             with patch("time.sleep"):
                                                 su.main(["prog"])
 

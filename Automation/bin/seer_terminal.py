@@ -73,8 +73,7 @@ def detect_theme() -> str:
 def parse_args(argv: list) -> Tuple[Optional[str], List[str]]:
     """Parse CLI arguments for theme, collecting remaining args for pass-through.
 
-    Unknown arguments are NOT rejected — they are collected and forwarded to
-    seer_console.py, matching bash REST_ARGS behavior.
+    Unknown arguments are NOT rejected — they are collected and forwarded to seer_console.py
 
     Args:
         argv: Command-line arguments.
@@ -100,7 +99,7 @@ def parse_args(argv: list) -> Tuple[Optional[str], List[str]]:
             usage(argv[0])
             sys.exit(0)
         else:
-            # Pass unrecognized args through to seer_console.py (bash REST_ARGS).
+            # Pass unrecognized args through to seer_console.py
             rest.append(arg)
 
     return theme, rest
@@ -123,7 +122,7 @@ def main(argv: list) -> int:
         print("ERROR: cannot find seer_console.py", file=sys.stderr)
         return 1
 
-    # Theme resolution: CLI > SEER_THEME env > auto-detect (matches bash).
+    # Theme resolution: CLI > SEER_THEME env > auto-detect.
     if theme is None:
         theme = os.environ.get("SEER_THEME")
     if theme is None:
@@ -132,15 +131,14 @@ def main(argv: list) -> int:
     env = os.environ.copy()
     env["SEER_THEME"] = theme
 
-    # Propagate NO_COLORS only when explicitly set to '1' or 'true' (matches bash).
+    # Propagate NO_COLORS only when explicitly set to '1' or 'true'.
     no_colors = env.get("NO_COLORS")
     if no_colors not in ("1", "true"):
         env.pop("NO_COLORS", None)
 
-    # Build exec command, forwarding all remaining args (bash REST_ARGS parity).
+    # Build exec command, forwarding all remaining args .
     cmd = ["python3", console] + rest_args
 
-    # True exec (parity with bash `exec python3 "$CONSOLE_PY" "${REST_ARGS[@]:-}"`).
     os.execvpe("python3", cmd, env)
 
 

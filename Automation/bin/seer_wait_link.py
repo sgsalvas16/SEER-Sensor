@@ -5,7 +5,7 @@ This script:
 - Brings the interface up (best effort)
 - Waits for carrier or LOWER_UP state
 - Enables promiscuous mode on success
-- Returns success even on timeout (matches bash behavior)
+- Returns success even on timeout
 """
 
 import os
@@ -34,8 +34,10 @@ def run_best_effort(cmd: List[str]) -> subprocess.CompletedProcess:
             stderr=subprocess.PIPE,
             text=True,
         )
-    except Exception:  # Intentional isolation point — matches bash `|| true`.
-        return subprocess.CompletedProcess(cmd, returncode=1, stdout="", stderr="")
+    except Exception:  # Intentional isolation point.
+        return subprocess.CompletedProcess(
+            cmd, returncode=1, stdout="", stderr=""
+        )
 
 
 def get_carrier(iface: str) -> str:
@@ -57,8 +59,6 @@ def get_carrier(iface: str) -> str:
 
 def has_lower_up(iface: str) -> bool:
     """Check if interface has LOWER_UP flag via `ip -d link show`.
-
-    Uses -d (detail) flag to match bash: `ip -d link show "$iface"`.
 
     Args:
         iface: Interface name.
@@ -85,7 +85,7 @@ def main(argv: List[str]) -> int:
 
     iface = argv[1]
 
-    # Priority: CLI arg > WAIT_LINK_TIMEOUT env var > 60s default (matches bash).
+    # Priority: CLI arg > WAIT_LINK_TIMEOUT env var > 60s default.
     if len(argv) > 2:
         raw_timeout = argv[2]
     else:
@@ -93,38 +93,46 @@ def main(argv: List[str]) -> int:
 
     try:
         timeout_val = int(raw_timeout)
-    except Exception:  # Intentional isolation point — bad timeout falls back safely.
+    except (
+        Exception
+    ):  # Intentional isolation point — bad timeout falls back safely.
         timeout_val = 60
 
     print(
-        f"seer-wait-link: bringing {iface} up and waiting for link (timeout {timeout_val}s)",
+        f"seer-wait-link: bringing {iface} up and waiting for link"
+        f" (timeout {timeout_val}s)",
         file=sys.stderr,
     )
 
-    # Bring interface up (best effort, matches `ip link set dev "$iface" up || true`).
+    # Bring interface up
     run_best_effort(["ip", "link", "set", "dev", iface, "up"])
 
     elapsed = 0
     while elapsed < timeout_val:
-        # Prefer carrier sysfs if available (matches bash check order).
+        # Prefer carrier sysfs if available.
         carrier = get_carrier(iface)
         if carrier == "1":
             print(f"seer-wait-link: {iface} carrier detected", file=sys.stderr)
-            run_best_effort(["ip", "link", "set", "dev", iface, "promisc", "on"])
+            run_best_effort(
+                ["ip", "link", "set", "dev", iface, "promisc", "on"]
+            )
             return 0
 
         # Fallback: LOWER_UP flag in ip -d link show output.
         if has_lower_up(iface):
             print(f"seer-wait-link: {iface} LOWER_UP", file=sys.stderr)
-            run_best_effort(["ip", "link", "set", "dev", iface, "promisc", "on"])
+            run_best_effort(
+                ["ip", "link", "set", "dev", iface, "promisc", "on"]
+            )
             return 0
 
         time.sleep(1)
         elapsed += 1
 
-    # Timeout: log and exit 0 (never fail the caller — matches bash).
+    # Timeout: log and exit 0 (never fail the caller).
     print(
-        f"seer-wait-link: timed out waiting for link on {iface} (timeout {timeout_val}s); continuing",
+        f"seer-wait-link: timed out waiting for link on {iface}"
+        f" (timeout {timeout_val}s); continuing",
         file=sys.stderr,
     )
     return 0
