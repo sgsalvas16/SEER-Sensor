@@ -17,9 +17,7 @@ from pathlib import Path
 REFRESH = float(os.environ.get("REFRESH", "0.5"))
 # NOTE: capture service is templated; default is derived
 # from YAML 'interface' (overridable via env)
-CAPTURE_SERVICE = (
-    os.environ.get("CAPTURE_SERVICE", None) or "seer-capture@enp1s0.service"
-)
+CAPTURE_SERVICE = os.environ.get("CAPTURE_SERVICE", None) or "seer-capture@enp1s0.service"
 MOVER_SERVICE = os.environ.get("MOVER_SERVICE", "seer-move-oldest.service")
 MOVER_TIMER = os.environ.get("MOVER_TIMER", "seer-move-oldest.timer")
 
@@ -29,12 +27,8 @@ JSON_SPOOL = os.environ.get("JSON_SPOOL", "/var/seer/json_spool")
 SHIPPER_SERVICE = os.environ.get("SHIPPER_SERVICE", "seer-shipper.service")
 AGENT_SERVICE = os.environ.get("AGENT_SERVICE", "seer-agent.service")
 HOTSWAP_SERVICE = os.environ.get("HOTSWAP_SERVICE", "seer-hotswap.service")
-HOTSWAP_STATE = os.environ.get(
-    "HOTSWAP_STATE", "/var/log/seer/hotswap_state.json"
-)
-RECEIVER_SERVICE = os.environ.get(
-    "RECEIVER_SERVICE", "seer-scout-receiver.service"
-)
+HOTSWAP_STATE = os.environ.get("HOTSWAP_STATE", "/var/log/seer/hotswap_state.json")
+RECEIVER_SERVICE = os.environ.get("RECEIVER_SERVICE", "seer-scout-receiver.service")
 RECEIVER_PORT = int(os.environ.get("RECEIVER_PORT", "8080"))
 
 # CLI / env flags
@@ -60,9 +54,7 @@ NO_COLORS = bool(_args.no_colors) or os.environ.get("NO_COLORS", "0") in (
 
 
 def run(cmd):
-    return subprocess.run(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-    )
+    return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
 def read_cfg():
@@ -278,9 +270,7 @@ def act_toggle_mount():
     """Toggle mount/unmount of export drive.
     Fully automated - finds and mounts entire drive."""
     cfg = read_cfg()
-    mount_candidates = cfg.get("export", {}).get(
-        "mount_candidates", ["/mnt/seer_external"]
-    )
+    mount_candidates = cfg.get("export", {}).get("mount_candidates", ["/mnt/seer_external"])
     target = mount_candidates[0] if mount_candidates else "/mnt/seer_external"
 
     # Check if target is currently mounted
@@ -295,11 +285,7 @@ def act_toggle_mount():
             if "busy" in result.stderr.lower():
                 lazy_result = run(["sudo", "umount", "-l", target])
                 if lazy_result.returncode == 0:
-                    return (
-                        f"✓ Unmounted {target} "
-                        f"(lazy - will complete "
-                        f"when files close)"
-                    )
+                    return f"✓ Unmounted {target} (lazy - will complete when files close)"
             return f"✗ Failed to unmount {target}: {result.stderr.strip()}"
 
     # Not mounted - try to mount
@@ -382,10 +368,7 @@ def act_toggle_mount():
     if not candidates:
         # Debug: show what we found
         debug_info = run(["lsblk", "-o", "NAME,SIZE,TYPE,RM,FSTYPE,MOUNTPOINT"])
-        return (
-            f"✗ No suitable drive found\n\n"
-            f"Available devices:\n{debug_info.stdout}"
-        )
+        return f"✗ No suitable drive found\n\nAvailable devices:\n{debug_info.stdout}"
 
     # Sort by priority (highest first), then size (largest first)
     candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)
@@ -402,11 +385,7 @@ def act_toggle_mount():
     # Check if device has a filesystem
     blkid_result = run(["sudo", "blkid", device_path])
     if blkid_result.returncode != 0:
-        return (
-            f"✗ No filesystem detected on "
-            f"{device_path}. Use: "
-            f"sudo mkfs.ext4 {device_path}"
-        )
+        return f"✗ No filesystem detected on {device_path}. Use: sudo mkfs.ext4 {device_path}"
 
     # Try to mount
     mount_result = run(["sudo", "mount", device_path, target])
@@ -435,14 +414,9 @@ def act_toggle_mount():
         elif "special device" in error_msg.lower():
             return f"✗ Device {device_path} not found or not accessible"
         elif "wrong fs type" in error_msg.lower():
-            return (
-                f"✗ Filesystem type not recognized."
-                f" Try: sudo blkid {device_path}"
-            )
+            return f"✗ Filesystem type not recognized. Try: sudo blkid {device_path}"
         else:
-            return (
-                f"✗ Mount failed: {error_msg if error_msg else 'unknown error'}"
-            )
+            return f"✗ Mount failed: {error_msg if error_msg else 'unknown error'}"
 
 
 def collect_status():
@@ -595,12 +569,8 @@ def render(stdscr):
             else:
                 # EVR:RDY-friendly mapping (term-safe approximation)
                 curses.init_pair(1, curses.COLOR_RED, -1)  # failed/error
-                curses.init_pair(
-                    2, curses.COLOR_CYAN, -1
-                )  # active/connected (teal-like)
-                curses.init_pair(
-                    3, curses.COLOR_MAGENTA, -1
-                )  # inactive/stopped (muted)
+                curses.init_pair(2, curses.COLOR_CYAN, -1)  # active/connected (teal-like)
+                curses.init_pair(3, curses.COLOR_MAGENTA, -1)  # inactive/stopped (muted)
                 curses.init_pair(4, curses.COLOR_BLUE, -1)  # header/accent
                 curses.init_pair(5, curses.COLOR_WHITE, -1)  # normal
         except curses.error:
@@ -640,11 +610,7 @@ def render(stdscr):
         hot_state = systemctl_is_active(HOTSWAP_SERVICE)
 
         # Prefer interface from YAML; fall back to env IFACE or enp2s0
-        iface = (
-            _IFACE_BOOT
-            if "_IFACE_BOOT" in globals()
-            else os.environ.get("IFACE", "enp2s0")
-        )
+        iface = _IFACE_BOOT if "_IFACE_BOOT" in globals() else os.environ.get("IFACE", "enp2s0")
         zeek_unit = f"seer-zeek@{iface}.service"
         zeek_state = systemctl_is_active(zeek_unit)
 
@@ -662,15 +628,11 @@ def render(stdscr):
         # Count actual files on drive if mounted
         drive_pcap_count = 0
         if drive_present:
-            mount_candidates = cfg.get("export", {}).get(
-                "mount_candidates", ["/mnt/seer_external"]
-            )
+            mount_candidates = cfg.get("export", {}).get("mount_candidates", ["/mnt/seer_external"])
             for candidate in mount_candidates:
                 if os.path.ismount(candidate):
                     try:
-                        drive_pcap_count = sum(
-                            1 for _ in Path(candidate).rglob("*.pcap*")
-                        )
+                        drive_pcap_count = sum(1 for _ in Path(candidate).rglob("*.pcap*"))
                     except OSError:
                         pass
                     break
@@ -688,9 +650,7 @@ def render(stdscr):
 
             # Drive status
             if drive_present:
-                mount_candidates = cfg.get("export", {}).get(
-                    "mount_candidates", ["/mnt/seer_external"]
-                )
+                mount_candidates = cfg.get("export", {}).get("mount_candidates", ["/mnt/seer_external"])
                 active_mount = "drive"
                 for candidate in mount_candidates:
                     if os.path.ismount(candidate):
@@ -753,9 +713,7 @@ def render(stdscr):
 
         # FULL MODE - Show everything
         ts = now.strftime("%H:%M:%S  %b %d %Y")
-        hdr = (
-            f"SEER MONITOR  [REF: {REFRESH:.1f}s]  [HOST: {host}]  [TIME: {ts}]"
-        )
+        hdr = f"SEER MONITOR  [REF: {REFRESH:.1f}s]  [HOST: {host}]  [TIME: {ts}]"
         # Header: bold + accent color (pair 4)
         try:
             safe_addstr(stdscr, 0, 0, hdr, curses.color_pair(4) | curses.A_BOLD)
@@ -785,9 +743,7 @@ def render(stdscr):
         sec_left = f"+ SYSTEM {'-' * (max(0, left_w - 10))}"
         sec_right = f"+ CONTROLS {'-' * (max(0, right_w - 12))}"
         try:
-            safe_addstr(
-                stdscr, 2, 0, sec_left, curses.color_pair(4) | curses.A_BOLD
-            )
+            safe_addstr(stdscr, 2, 0, sec_left, curses.color_pair(4) | curses.A_BOLD)
             safe_addstr(
                 stdscr,
                 2,
@@ -841,13 +797,9 @@ def render(stdscr):
         # active/accent color for visibility
         try:
             stdscr.addstr(11, 2, "  Ring        : ")
-            stdscr.addstr(
-                11, 21, f"{buff_count:<5}", curses.color_pair(2) | curses.A_BOLD
-            )
+            stdscr.addstr(11, 21, f"{buff_count:<5}", curses.color_pair(2) | curses.A_BOLD)
             stdscr.addstr(12, 2, "  Backlog     : ")
-            stdscr.addstr(
-                12, 21, f"{back_count:<5}", curses.color_pair(3) | curses.A_DIM
-            )
+            stdscr.addstr(12, 21, f"{back_count:<5}", curses.color_pair(3) | curses.A_DIM)
         except Exception:
             stdscr.addstr(11, 2, f"  Ring        : {buff_count:<5}")
             stdscr.addstr(12, 2, f"  Backlog     : {back_count:<5}")
@@ -855,9 +807,7 @@ def render(stdscr):
         # Show drive status and destination
         if drive_present:
             # Detect which mount is active
-            mount_candidates = cfg.get("export", {}).get(
-                "mount_candidates", ["/mnt/seer_external"]
-            )
+            mount_candidates = cfg.get("export", {}).get("mount_candidates", ["/mnt/seer_external"])
             active_mount = "drive"
             for candidate in mount_candidates:
                 if os.path.ismount(candidate):
@@ -866,21 +816,15 @@ def render(stdscr):
             try:
                 # Drive connected: label in accent, value bold
                 stdscr.addstr(13, 2, "  Drive       : ", curses.color_pair(5))
-                stdscr.addstr(
-                    13, 17, "CONNECTED", curses.color_pair(2) | curses.A_BOLD
-                )
+                stdscr.addstr(13, 17, "CONNECTED", curses.color_pair(2) | curses.A_BOLD)
                 stdscr.addstr(14, 2, "  Mount       : ")
                 stdscr.addstr(14, 16, f"{active_mount}", curses.color_pair(5))
                 stdscr.addstr(15, 2, "  On Drive    : ")
-                stdscr.addstr(
-                    15, 16, f"{drive_pcap_count} files", curses.color_pair(2)
-                )
+                stdscr.addstr(15, 16, f"{drive_pcap_count} files", curses.color_pair(2))
             except Exception:
                 stdscr.addstr(13, 2, "  Drive       : CONNECTED")
                 stdscr.addstr(14, 2, f"  Mount       : {active_mount}")
-                stdscr.addstr(
-                    15, 2, f"  On Drive    : {drive_pcap_count} files"
-                )
+                stdscr.addstr(15, 2, f"  On Drive    : {drive_pcap_count} files")
         else:
             stdscr.addstr(13, 2, "  Drive       : ", curses.color_pair(3))
             stdscr.addstr(13, 17, "not connected")
@@ -910,17 +854,11 @@ def render(stdscr):
                 sources = recv_stats.get("unique_sources", 0)
                 rpm = recv_stats.get("requests_per_minute", 0)
                 stdscr.addstr(17, 2, "  Requests    : ")
-                stdscr.addstr(
-                    17, 18, f"{total_req}", curses.color_pair(2) | curses.A_BOLD
-                )
-                stdscr.addstr(
-                    17, 26, f" ({success_rate}% ok)", curses.color_pair(5)
-                )
+                stdscr.addstr(17, 18, f"{total_req}", curses.color_pair(2) | curses.A_BOLD)
+                stdscr.addstr(17, 26, f" ({success_rate}% ok)", curses.color_pair(5))
                 stdscr.addstr(18, 2, "  Data        : ")
                 stdscr.addstr(18, 18, f"{data_mb} MB", curses.color_pair(2))
-                stdscr.addstr(
-                    18, 30, f" ({sources} src, {rpm}/min)", curses.color_pair(5)
-                )
+                stdscr.addstr(18, 30, f" ({sources} src, {rpm}/min)", curses.color_pair(5))
             else:
                 stdscr.addstr(17, 2, "  Status      : ", curses.color_pair(3))
                 stdscr.addstr(17, 18, "unavailable", curses.color_pair(1))
@@ -940,14 +878,10 @@ def render(stdscr):
             stdscr.addstr(3, left_w + 2, "[1] ")
             stdscr.addstr(3, left_w + 6, "Stop", curses.color_pair(1))
             stdscr.addstr(3, left_w + 12, "   [3] ")
-            stdscr.addstr(
-                3, left_w + 18, "Start", curses.color_pair(2) | curses.A_BOLD
-            )
+            stdscr.addstr(3, left_w + 18, "Start", curses.color_pair(2) | curses.A_BOLD)
 
             stdscr.addstr(4, left_w + 2, "[2] ")
-            stdscr.addstr(
-                4, left_w + 6, "Mount/Unmount Drive", curses.color_pair(5)
-            )
+            stdscr.addstr(4, left_w + 6, "Mount/Unmount Drive", curses.color_pair(5))
 
             stdscr.addstr(5, left_w + 2, "[z] ")
             stdscr.addstr(5, left_w + 6, "Zeek Start", curses.color_pair(2))
@@ -970,9 +904,7 @@ def render(stdscr):
             stdscr.addstr(9, left_w + 8, "Speed", curses.color_pair(5))
 
             stdscr.addstr(11, left_w + 2, "[?] ")
-            stdscr.addstr(
-                11, left_w + 6, "Help", curses.color_pair(4) | curses.A_BOLD
-            )
+            stdscr.addstr(11, left_w + 6, "Help", curses.color_pair(4) | curses.A_BOLD)
             stdscr.addstr(11, left_w + 16, "[q] ")
             stdscr.addstr(11, left_w + 20, "Quit", curses.color_pair(5))
         except Exception:
@@ -1070,30 +1002,18 @@ def render(stdscr):
             elif ch in (ord("a"), ord("A")):
                 curses.def_prog_mode()
                 curses.endwin()
-                cat = (
-                    'echo "Agent heuristics: '
-                    "(placeholder)\\n- rule1: ...\\n"
-                    '- rule2: ...\\n" | less -SRX'
-                )
+                cat = 'echo "Agent heuristics: (placeholder)\\n- rule1: ...\\n- rule2: ...\\n" | less -SRX'
                 os.system(cat)
                 curses.reset_prog_mode()
             elif ch == ord("z"):
                 curses.def_prog_mode()
                 curses.endwin()
-                os.system(
-                    "sudo /usr/local/bin/seer-zeek.sh"
-                    " start; read -n 1 -s -r -p"
-                    " 'Press any key to continue.'"
-                )
+                os.system("sudo /usr/local/bin/seer-zeek.sh start; read -n 1 -s -r -p 'Press any key to continue.'")
                 curses.reset_prog_mode()
             elif ch == ord("x"):
                 curses.def_prog_mode()
                 curses.endwin()
-                os.system(
-                    "sudo /usr/local/bin/seer-zeek.sh"
-                    " stop; read -n 1 -s -r -p"
-                    " 'Press any key to continue.'"
-                )
+                os.system("sudo /usr/local/bin/seer-zeek.sh stop; read -n 1 -s -r -p 'Press any key to continue.'")
                 curses.reset_prog_mode()
             # Removed verbose Zeek status viewer to keep UI minimal
             break
@@ -1119,9 +1039,7 @@ def main():
         exp = s["export"]
         if exp["drive_present"]:
             cfg = read_cfg()
-            mount_candidates = cfg.get("export", {}).get(
-                "mount_candidates", ["/mnt/seer_external"]
-            )
+            mount_candidates = cfg.get("export", {}).get("mount_candidates", ["/mnt/seer_external"])
             active_mount = "drive"
             for candidate in mount_candidates:
                 if os.path.ismount(candidate):
@@ -1130,9 +1048,7 @@ def main():
             print(f"  DRIVE   : CONNECTED at {active_mount}")
             # Count files on drive
             try:
-                drive_count = sum(
-                    1 for _ in Path(active_mount).rglob("*.pcap*")
-                )
+                drive_count = sum(1 for _ in Path(active_mount).rglob("*.pcap*"))
                 print(f"  ON DRIVE: {drive_count} files")
             except OSError:
                 print("  ON DRIVE: (unable to count)")
@@ -1146,25 +1062,14 @@ def main():
         recv = s.get("receiver")
         if recv:
             print("  SCOUT RECEIVER:")
-            print(
-                f"    Requests  : "
-                f"{recv.get('total_requests', 0)} total, "
-                f"{recv.get('success_rate', 0)}% success"
-            )
-            print(
-                f"    Data      : "
-                f"{recv.get('total_data_received_mb', 0)}"
-                f" MB received"
-            )
+            print(f"    Requests  : {recv.get('total_requests', 0)} total, {recv.get('success_rate', 0)}% success")
+            print(f"    Data      : {recv.get('total_data_received_mb', 0)} MB received")
             print(f"    Sources   : {recv.get('unique_sources', 0)} unique")
         return
 
     # Interactive TUI requires a TTY.
     if not (sys.stdin.isatty() and sys.stdout.isatty()):
-        print(
-            "seer-console: not running in a TTY; "
-            "interactive console requires a terminal."
-        )
+        print("seer-console: not running in a TTY; interactive console requires a terminal.")
         return
     try:
         curses.wrapper(render)

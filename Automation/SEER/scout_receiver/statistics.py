@@ -170,9 +170,7 @@ class StatisticsCollector:
 
             # Trim recent requests list
             if len(self.recent_requests) > self.max_recent_requests:
-                self.recent_requests = self.recent_requests[
-                    -self.max_recent_requests :
-                ]
+                self.recent_requests = self.recent_requests[-self.max_recent_requests :]
 
     def _parse_event_types(self, data: Any, timestamp: str) -> None:
         """Parse event types from received data.
@@ -248,9 +246,7 @@ class StatisticsCollector:
 
             avg_processing_time = 0.0
             if self.successful_requests > 0:
-                avg_processing_time = (
-                    self.total_processing_time / self.successful_requests
-                )
+                avg_processing_time = self.total_processing_time / self.successful_requests
 
             success_rate = 0.0
             if self.total_requests > 0:
@@ -263,15 +259,11 @@ class StatisticsCollector:
                 "failed_requests": self.failed_requests,
                 "success_rate": round(success_rate * 100, 2),
                 "total_data_received": self.total_data_received,
-                "total_data_received_mb": round(
-                    self.total_data_received / (1024 * 1024), 2
-                ),
+                "total_data_received_mb": round(self.total_data_received / (1024 * 1024), 2),
                 "total_records_received": self.total_records_received,
                 "average_processing_time": round(avg_processing_time, 4),
                 "min_processing_time": (
-                    round(self.min_processing_time, 4)
-                    if self.min_processing_time != float("inf")
-                    else 0
+                    round(self.min_processing_time, 4) if self.min_processing_time != float("inf") else 0
                 ),
                 "max_processing_time": round(self.max_processing_time, 4),
                 "unique_sources": len(self.source_stats),
@@ -436,9 +428,5 @@ class StatisticsCollector:
             "total_requests": stats["total_requests"],
             "success_rate": stats["success_rate"],
             "unique_sources": stats["unique_sources"],
-            "last_activity": (
-                self.recent_requests[-1]["timestamp"]
-                if self.recent_requests
-                else None
-            ),
+            "last_activity": (self.recent_requests[-1]["timestamp"] if self.recent_requests else None),
         }

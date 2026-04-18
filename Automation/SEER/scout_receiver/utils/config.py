@@ -49,9 +49,7 @@ class ScoutReceiverConfig:
                 with open(self.config_path) as f:
                     return yaml.safe_load(f) or {}
         except Exception as e:
-            print(
-                f"Warning: Failed to load config from {self.config_path}: {e}"
-            )
+            print(f"Warning: Failed to load config from {self.config_path}: {e}")
         return {}
 
     def _extract_receiver_config(self) -> Dict[str, Any]:
@@ -107,11 +105,7 @@ class ScoutReceiverConfig:
         """Deep merge two dictionaries, with override taking precedence."""
         result = base.copy()
         for key, value in override.items():
-            if (
-                key in result
-                and isinstance(result[key], dict)
-                and isinstance(value, dict)
-            ):
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
                 result[key] = self._deep_merge(result[key], value)
             else:
                 result[key] = value
@@ -171,11 +165,7 @@ class ScoutReceiverConfig:
         return self.get("enabled", True)
 
     def __repr__(self) -> str:
-        return (
-            f"ScoutReceiverConfig("
-            f"path={self.config_path}, "
-            f"enabled={self.is_enabled()})"
-        )
+        return f"ScoutReceiverConfig(path={self.config_path}, enabled={self.is_enabled()})"
 
 
 def load_config(config_path: Optional[Path] = None) -> ScoutReceiverConfig:

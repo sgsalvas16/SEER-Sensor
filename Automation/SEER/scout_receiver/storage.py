@@ -154,9 +154,7 @@ class ScoutDataStorage:
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             safe_host_id = self._sanitize_filename(host_id)
-            filename = (
-                f"scout_{data_type}_{safe_host_id}_{timestamp}.{extension}"
-            )
+            filename = f"scout_{data_type}_{safe_host_id}_{timestamp}.{extension}"
             filepath = storage_dir / filename
 
             with open(filepath, "wb") as f:
@@ -174,9 +172,7 @@ class ScoutDataStorage:
             logger.error(f"Failed to save raw data: {e}")
             return None
 
-    def get_recent_files(
-        self, limit: int = 20, data_type: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    def get_recent_files(self, limit: int = 20, data_type: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get list of recently saved files.
 
         Args:
@@ -190,9 +186,7 @@ class ScoutDataStorage:
 
         try:
             # Find all JSON files
-            pattern = (
-                f"scout_{data_type}_*.json" if data_type else "scout_*.json"
-            )
+            pattern = f"scout_{data_type}_*.json" if data_type else "scout_*.json"
 
             for filepath in self.data_dir.rglob(pattern):
                 try:
@@ -202,9 +196,7 @@ class ScoutDataStorage:
                             "path": str(filepath),
                             "filename": filepath.name,
                             "size": stat.st_size,
-                            "modified": datetime.fromtimestamp(
-                                stat.st_mtime
-                            ).isoformat(),
+                            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
                             "modified_ts": stat.st_mtime,
                         }
                     )
@@ -272,9 +264,7 @@ class ScoutDataStorage:
                         pass
 
             if deleted > 0:
-                logger.info(
-                    f"Cleaned up {deleted} files older than {retention} days"
-                )
+                logger.info(f"Cleaned up {deleted} files older than {retention} days")
 
             self.stats["files_rotated"] += deleted
             return deleted
@@ -312,9 +302,7 @@ class ScoutDataStorage:
                 "total_files": total_files,
                 "total_size_bytes": total_size,
                 "total_size_mb": round(total_size / (1024 * 1024), 2),
-                "disk_free_pct": round(disk_free_pct, 1)
-                if disk_free_pct
-                else None,
+                "disk_free_pct": round(disk_free_pct, 1) if disk_free_pct else None,
                 "files_created": self.stats["files_created"],
                 "bytes_written": self.stats["bytes_written"],
                 "write_errors": self.stats["write_errors"],
