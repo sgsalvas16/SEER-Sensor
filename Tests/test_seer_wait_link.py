@@ -55,9 +55,7 @@ def test_main_missing_iface_prints_usage_to_stderr_and_returns_2():
 def test_main_carrier_up_returns_0():
     """Verify exit code 0 when sysfs carrier file reports link up."""
     with patch("builtins.open", mock_open(read_data="1")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
             with patch("time.sleep"):
                 rc = swl.main(["prog", "eth0"])
 
@@ -67,9 +65,7 @@ def test_main_carrier_up_returns_0():
 def test_main_carrier_up_message_goes_to_stderr(capsys: object) -> None:
     """Verify carrier detection status message is written to stderr."""
     with patch("builtins.open", mock_open(read_data="1")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
             with patch("time.sleep"):
                 swl.main(["prog", "eth0"])
 
@@ -113,9 +109,7 @@ def test_main_lower_up_message_goes_to_stderr(capsys: object) -> None:
 def test_main_timeout_returns_0():
     """Verify exit code 0 on timeout — script never fails the caller."""
     with patch("builtins.open", mock_open(read_data="0")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
             with patch("time.sleep"):
                 rc = swl.main(["prog", "eth0", "2"])
 
@@ -128,9 +122,7 @@ def test_main_timeout_message_includes_value_and_goes_to_stderr(
     """Verify timeout message is on stderr and includes the configured
     timeout value."""
     with patch("builtins.open", mock_open(read_data="0")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
             with patch("time.sleep"):
                 swl.main(["prog", "eth0", "2"])
 
@@ -144,12 +136,8 @@ def test_main_default_timeout_is_60_seconds():
     sleep_calls: list = []
 
     with patch("builtins.open", mock_open(read_data="0")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
-            with patch(
-                "time.sleep", side_effect=lambda s: sleep_calls.append(s)
-            ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
+            with patch("time.sleep", side_effect=lambda s: sleep_calls.append(s)):
                 swl.main(["prog", "eth0"])
 
     assert len(sleep_calls) == 60
@@ -160,12 +148,8 @@ def test_main_wait_link_timeout_env_var_sets_timeout():
     sleep_calls: list = []
 
     with patch("builtins.open", mock_open(read_data="0")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
-            with patch(
-                "time.sleep", side_effect=lambda s: sleep_calls.append(s)
-            ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
+            with patch("time.sleep", side_effect=lambda s: sleep_calls.append(s)):
                 with patch.dict("os.environ", {"WAIT_LINK_TIMEOUT": "5"}):
                     swl.main(["prog", "eth0"])
 
@@ -177,12 +161,8 @@ def test_main_cli_timeout_overrides_env_var():
     sleep_calls: list = []
 
     with patch("builtins.open", mock_open(read_data="0")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
-            with patch(
-                "time.sleep", side_effect=lambda s: sleep_calls.append(s)
-            ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
+            with patch("time.sleep", side_effect=lambda s: sleep_calls.append(s)):
                 with patch.dict("os.environ", {"WAIT_LINK_TIMEOUT": "99"}):
                     swl.main(["prog", "eth0", "3"])
 
@@ -194,12 +174,8 @@ def test_main_invalid_timeout_falls_back_to_60():
     sleep_calls: list = []
 
     with patch("builtins.open", mock_open(read_data="0")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
-            with patch(
-                "time.sleep", side_effect=lambda s: sleep_calls.append(s)
-            ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
+            with patch("time.sleep", side_effect=lambda s: sleep_calls.append(s)):
                 rc = swl.main(["prog", "eth0", "notanint"])
 
     assert rc == 0
@@ -265,9 +241,7 @@ def test_has_lower_up_uses_ip_dash_d_flag():
 
     show_calls = [c for c in calls if "show" in c]
     assert show_calls, "Expected at least one 'ip link show' call."
-    assert any("-d" in c for c in show_calls), (
-        "Expected -d flag in ip link show call."
-    )
+    assert any("-d" in c for c in show_calls), "Expected -d flag in ip link show call."
 
 
 def test_main_startup_message_goes_to_stderr_with_timeout(
@@ -275,9 +249,7 @@ def test_main_startup_message_goes_to_stderr_with_timeout(
 ) -> None:
     """Verify the startup 'bringing up and waiting' message is on stderr."""
     with patch("builtins.open", mock_open(read_data="1")):
-        with patch(
-            "seer_wait_link.run_best_effort", return_value=run_success()
-        ):
+        with patch("seer_wait_link.run_best_effort", return_value=run_success()):
             with patch("time.sleep"):
                 swl.main(["prog", "eth0", "5"])
 

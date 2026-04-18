@@ -35,9 +35,7 @@ def run_best_effort(cmd: List[str]) -> subprocess.CompletedProcess:
             text=True,
         )
     except Exception:  # Intentional isolation point.
-        return subprocess.CompletedProcess(
-            cmd, returncode=1, stdout="", stderr=""
-        )
+        return subprocess.CompletedProcess(cmd, returncode=1, stdout="", stderr="")
 
 
 def get_carrier(iface: str) -> str:
@@ -93,14 +91,11 @@ def main(argv: List[str]) -> int:
 
     try:
         timeout_val = int(raw_timeout)
-    except (
-        Exception
-    ):  # Intentional isolation point — bad timeout falls back safely.
+    except Exception:  # Intentional isolation point — bad timeout falls back safely.
         timeout_val = 60
 
     print(
-        f"seer-wait-link: bringing {iface} up and waiting for link"
-        f" (timeout {timeout_val}s)",
+        f"seer-wait-link: bringing {iface} up and waiting for link (timeout {timeout_val}s)",
         file=sys.stderr,
     )
 
@@ -113,17 +108,13 @@ def main(argv: List[str]) -> int:
         carrier = get_carrier(iface)
         if carrier == "1":
             print(f"seer-wait-link: {iface} carrier detected", file=sys.stderr)
-            run_best_effort(
-                ["ip", "link", "set", "dev", iface, "promisc", "on"]
-            )
+            run_best_effort(["ip", "link", "set", "dev", iface, "promisc", "on"])
             return 0
 
         # Fallback: LOWER_UP flag in ip -d link show output.
         if has_lower_up(iface):
             print(f"seer-wait-link: {iface} LOWER_UP", file=sys.stderr)
-            run_best_effort(
-                ["ip", "link", "set", "dev", iface, "promisc", "on"]
-            )
+            run_best_effort(["ip", "link", "set", "dev", iface, "promisc", "on"])
             return 0
 
         time.sleep(1)
@@ -131,8 +122,7 @@ def main(argv: List[str]) -> int:
 
     # Timeout: log and exit 0 (never fail the caller).
     print(
-        f"seer-wait-link: timed out waiting for link on {iface}"
-        f" (timeout {timeout_val}s); continuing",
+        f"seer-wait-link: timed out waiting for link on {iface} (timeout {timeout_val}s); continuing",
         file=sys.stderr,
     )
     return 0

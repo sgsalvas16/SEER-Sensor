@@ -29,9 +29,7 @@ def test_main_help_flag_prints_usage_and_exits_0():
 
 def test_main_unknown_arg_passes_through_to_console():
     """Verify unknown arguments are forwarded to seer_console.py, not rejected."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch("seer_terminal.detect_theme", return_value="classic"):
             with patch("os.execvpe") as execvpe:
                 st.main(["prog", "--some-console-flag"])
@@ -52,9 +50,7 @@ def test_main_console_not_found_returns_1():
 
 def test_main_cli_theme_long_form_sets_seer_theme_env():
     """Verify --theme VALUE sets SEER_THEME in the exec environment."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch("os.execvpe") as execvpe:
             st.main(["prog", "--theme", "dark"])
 
@@ -64,9 +60,7 @@ def test_main_cli_theme_long_form_sets_seer_theme_env():
 
 def test_main_cli_theme_equals_form_sets_seer_theme_env():
     """Verify --theme=VALUE sets SEER_THEME in the exec environment."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch("os.execvpe") as execvpe:
             st.main(["prog", "--theme=evr"])
 
@@ -76,9 +70,7 @@ def test_main_cli_theme_equals_form_sets_seer_theme_env():
 
 def test_main_env_theme_used_when_no_cli_theme_provided():
     """Verify SEER_THEME environment variable is used when no CLI theme is given."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch.dict("os.environ", {"SEER_THEME": "light"}):
             with patch("os.execvpe") as execvpe:
                 st.main(["prog"])
@@ -89,9 +81,7 @@ def test_main_env_theme_used_when_no_cli_theme_provided():
 
 def test_main_cli_theme_overrides_env_theme():
     """Verify CLI --theme takes precedence over the SEER_THEME environment variable."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch.dict("os.environ", {"SEER_THEME": "classic"}):
             with patch("os.execvpe") as execvpe:
                 st.main(["prog", "--theme", "evr"])
@@ -122,9 +112,7 @@ def test_detect_theme_returns_classic_when_tput_reports_fewer_than_16_colors():
 
 def test_detect_theme_returns_classic_when_tput_unavailable():
     """Verify detect_theme returns 'classic' when tput raises an exception."""
-    with patch(
-        "seer_terminal.subprocess.run", side_effect=Exception("not found")
-    ):
+    with patch("seer_terminal.subprocess.run", side_effect=Exception("not found")):
         theme = st.detect_theme()
 
     assert theme == "classic"
@@ -132,13 +120,9 @@ def test_detect_theme_returns_classic_when_tput_unavailable():
 
 def test_main_autodetect_called_when_no_cli_or_env_theme():
     """Verify detect_theme is invoked when neither CLI nor env provides a theme."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch.dict("os.environ", {}, clear=True):
-            with patch(
-                "seer_terminal.detect_theme", return_value="evr"
-            ) as mock_detect:
+            with patch("seer_terminal.detect_theme", return_value="evr") as mock_detect:
                 with patch("os.execvpe"):
                     st.main(["prog"])
 
@@ -147,9 +131,7 @@ def test_main_autodetect_called_when_no_cli_or_env_theme():
 
 def test_main_no_colors_removed_when_set_to_invalid_value():
     """Verify NO_COLORS is stripped from env when set to anything other than '1'/'true'."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch.dict("os.environ", {"NO_COLORS": "0"}):
             with patch("os.execvpe") as execvpe:
                 st.main(["prog"])
@@ -160,9 +142,7 @@ def test_main_no_colors_removed_when_set_to_invalid_value():
 
 def test_main_no_colors_preserved_when_set_to_one():
     """Verify NO_COLORS is kept in env when set to '1'."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch.dict("os.environ", {"NO_COLORS": "1"}):
             with patch("os.execvpe") as execvpe:
                 st.main(["prog"])
@@ -173,9 +153,7 @@ def test_main_no_colors_preserved_when_set_to_one():
 
 def test_main_no_colors_preserved_when_set_to_true():
     """Verify NO_COLORS is kept in env when set to 'true'."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch.dict("os.environ", {"NO_COLORS": "true"}):
             with patch("os.execvpe") as execvpe:
                 st.main(["prog"])
@@ -186,9 +164,7 @@ def test_main_no_colors_preserved_when_set_to_true():
 
 def test_main_all_non_theme_args_forwarded_to_console_in_order():
     """Verify all non-theme arguments are passed through to seer_console.py."""
-    with patch(
-        "seer_terminal.find_console_script", return_value="/fake/console.py"
-    ):
+    with patch("seer_terminal.find_console_script", return_value="/fake/console.py"):
         with patch("seer_terminal.detect_theme", return_value="classic"):
             with patch("os.execvpe") as execvpe:
                 st.main(["prog", "--foo", "--bar", "baz"])

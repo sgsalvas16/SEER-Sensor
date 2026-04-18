@@ -40,9 +40,7 @@ def run(cmd: List[str]) -> subprocess.CompletedProcess:
             text=True,
         )
     except Exception:  # Intentional isolation point
-        return subprocess.CompletedProcess(
-            cmd, returncode=1, stdout="", stderr=""
-        )
+        return subprocess.CompletedProcess(cmd, returncode=1, stdout="", stderr="")
 
 
 def systemctl(action: str, service: str) -> int:
@@ -82,9 +80,7 @@ def load_config(path: str) -> Dict[str, Any]:
 
         with open(path, "r") as f:
             return yaml.safe_load(f) or {}
-    except (
-        Exception
-    ):  # Intentional isolation point — missing config is handled upstream.
+    except Exception:  # Intentional isolation point — missing config is handled upstream.
         return {}
 
 
@@ -133,9 +129,7 @@ def create_dummy_pcaps(directory: str, count: int) -> List[str]:
             os.utime(path, (past, past))
             run(["chown", "seer:seer", path])  # Best-effort chown.
             created.append(path)
-        except (
-            Exception
-        ):  # Intentional isolation point — skip files we can't create.
+        except Exception:  # Intentional isolation point — skip files we can't create.
             pass
 
     return created
@@ -160,9 +154,7 @@ def cleanup_dummy_pcaps(ring_dir: str, dest_dir: str, backlog_dir: str) -> None:
         for f in glob.glob(os.path.join(directory, "SEER-DUMMY-*.pcap*")):
             try:
                 os.remove(f)
-            except (
-                Exception
-            ):  # Intentional isolation point — skip undeletable files.
+            except Exception:  # Intentional isolation point — skip undeletable files.
                 pass
 
 
@@ -184,9 +176,7 @@ def _latest_file(directory: str) -> str:
             reverse=True,
         )
         return entries[0]
-    except (
-        Exception
-    ):  # Intentional isolation point — missing dir returns empty.
+    except Exception:  # Intentional isolation point — missing dir returns empty.
         return ""
 
 
@@ -231,10 +221,7 @@ def main(argv: List[str]) -> int:
     iface = cfg.get("interface", "enp1s0")
     threshold_raw = cfg.get("buffer_threshold", "4")
 
-    print(
-        f"Verifier: ring_dir={ring_dir} dest_dir={dest_dir}"
-        f" backlog_dir={backlog_dir} iface={iface}"
-    )
+    print(f"Verifier: ring_dir={ring_dir} dest_dir={dest_dir} backlog_dir={backlog_dir} iface={iface}")
     print(f"Verifier: json_spool={json_spool}")
 
     # Directory checks — hard fail if any required directory is missing.
@@ -245,9 +232,7 @@ def main(argv: List[str]) -> int:
 
     try:
         threshold = int(threshold_raw)
-    except (
-        Exception
-    ):  # Intentional isolation point — bad threshold falls back to 4.
+    except Exception:  # Intentional isolation point — bad threshold falls back to 4.
         threshold = 4
 
     count_before = count_pcap_files(ring_dir)
@@ -256,10 +241,7 @@ def main(argv: List[str]) -> int:
     # Create dummy files only if below threshold — exactly enough to reach it.
     if count_before < threshold:
         need = threshold - count_before
-        print(
-            f"Creating {need} dummy pcap(s) in ring"
-            f" to meet threshold {threshold}"
-        )
+        print(f"Creating {need} dummy pcap(s) in ring to meet threshold {threshold}")
         create_dummy_pcaps(ring_dir, need)
         count_before = count_pcap_files(ring_dir)
         print(f"PCAPs in ring after adding dummies: {count_before}")
@@ -312,19 +294,13 @@ def main(argv: List[str]) -> int:
         zeek_ok = False
 
     # Check Zeek is writing logs into json_spool.
-    _count_log_files(
-        json_spool
-    )  # Snapshot before sleep (reserved for future delta).
+    _count_log_files(json_spool)  # Snapshot before sleep (reserved for future delta).
     time.sleep(2)
     zc_after = _count_log_files(json_spool)
     if zc_after > 0:
         print(f"OK: Zeek logs detected in json_spool ({zc_after})")
     else:
-        print(
-            "WARN: no Zeek logs found in json_spool yet"
-            " (fresh install or low traffic)."
-            " Skipping log assertion."
-        )
+        print("WARN: no Zeek logs found in json_spool yet (fresh install or low traffic). Skipping log assertion.")
     logs_ok = True  # Non-fatal
 
     # Cleanup dummy files from all directories.

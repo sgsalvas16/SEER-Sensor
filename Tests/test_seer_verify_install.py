@@ -57,9 +57,7 @@ def test_main_empty_config_returns_exit_2():
 def test_main_missing_ring_dir_returns_exit_3():
     """Verify exit code 3 when ring_dir does not exist."""
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", side_effect=mock_dirs_missing("/ring")):
                 with patch("builtins.print") as p:
                     rc = svi.main(["prog"])
@@ -71,9 +69,7 @@ def test_main_missing_ring_dir_returns_exit_3():
 def test_main_missing_dest_dir_returns_exit_3():
     """Verify exit code 3 when dest_dir does not exist."""
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", side_effect=mock_dirs_missing("/dest")):
                 with patch("builtins.print") as p:
                     rc = svi.main(["prog"])
@@ -85,12 +81,8 @@ def test_main_missing_dest_dir_returns_exit_3():
 def test_main_missing_backlog_dir_returns_exit_3():
     """Verify exit code 3 when backlog_dir does not exist."""
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
-            with patch(
-                "os.path.isdir", side_effect=mock_dirs_missing("/backlog")
-            ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
+            with patch("os.path.isdir", side_effect=mock_dirs_missing("/backlog")):
                 with patch("builtins.print") as p:
                     rc = svi.main(["prog"])
 
@@ -103,20 +95,14 @@ def test_main_ring_shrinks_after_mover_returns_passed():
     counts = iter([5, 4])  # before=5 (above threshold=4), after=4
 
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", side_effect=counts
-                ):
+                with patch("seer_verify_install.count_pcap_files", side_effect=counts):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         return_value=[],
                     ):
-                        with patch(
-                            "seer_verify_install.systemctl", return_value=0
-                        ):
+                        with patch("seer_verify_install.systemctl", return_value=0):
                             with patch(
                                 "seer_verify_install._latest_file",
                                 return_value="",
@@ -125,9 +111,7 @@ def test_main_ring_shrinks_after_mover_returns_passed():
                                     "seer_verify_install._count_log_files",
                                     return_value=1,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             with patch("builtins.print") as p:
                                                 rc = svi.main(["prog"])
@@ -141,20 +125,14 @@ def test_main_ring_unchanged_and_no_new_dest_files_returns_failed():
     counts = iter([5, 5])  # no change
 
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", side_effect=counts
-                ):
+                with patch("seer_verify_install.count_pcap_files", side_effect=counts):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         return_value=[],
                     ):
-                        with patch(
-                            "seer_verify_install.systemctl", return_value=0
-                        ):
+                        with patch("seer_verify_install.systemctl", return_value=0):
                             with patch(
                                 "seer_verify_install._latest_file",
                                 return_value="",
@@ -163,17 +141,13 @@ def test_main_ring_unchanged_and_no_new_dest_files_returns_failed():
                                     "seer_verify_install._count_log_files",
                                     return_value=1,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             with patch("builtins.print") as p:
                                                 rc = svi.main(["prog"])
 
     assert rc == 3
-    p.assert_any_call(
-        "FAIL: no files moved from ring and no new files in dest/backlog"
-    )
+    p.assert_any_call("FAIL: no files moved from ring and no new files in dest/backlog")
     p.assert_any_call("Verification FAILED")
 
 
@@ -191,9 +165,7 @@ def test_main_capture_service_check_uses_templated_unit_name():
             return_value=mock_config(iface="enp1s0"),
         ):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", return_value=5
-                ):
+                with patch("seer_verify_install.count_pcap_files", return_value=5):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         return_value=[],
@@ -210,15 +182,11 @@ def test_main_capture_service_check_uses_templated_unit_name():
                                     "seer_verify_install._count_log_files",
                                     return_value=1,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             svi.main(["prog"])
 
-    active_checks = [
-        svc for action, svc in service_checks if action == "is-active"
-    ]
+    active_checks = [svc for action, svc in service_checks if action == "is-active"]
     assert "seer-capture@enp1s0.service" in active_checks
     assert "seer-capture.service" not in active_checks
 
@@ -237,9 +205,7 @@ def test_main_zeek_service_check_uses_templated_unit_name():
             return_value=mock_config(iface="enp1s0"),
         ):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", return_value=5
-                ):
+                with patch("seer_verify_install.count_pcap_files", return_value=5):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         return_value=[],
@@ -256,15 +222,11 @@ def test_main_zeek_service_check_uses_templated_unit_name():
                                     "seer_verify_install._count_log_files",
                                     return_value=1,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             svi.main(["prog"])
 
-    active_checks = [
-        svc for action, svc in service_checks if action == "is-active"
-    ]
+    active_checks = [svc for action, svc in service_checks if action == "is-active"]
     assert "seer-zeek@enp1s0.service" in active_checks
     assert "seer-zeek.service" not in active_checks
 
@@ -278,13 +240,9 @@ def test_main_capture_service_inactive_returns_exit_3():
         return 0
 
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", return_value=5
-                ):
+                with patch("seer_verify_install.count_pcap_files", return_value=5):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         return_value=[],
@@ -301,9 +259,7 @@ def test_main_capture_service_inactive_returns_exit_3():
                                     "seer_verify_install._count_log_files",
                                     return_value=1,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             with patch("builtins.print") as p:
                                                 rc = svi.main(["prog"])
@@ -322,13 +278,9 @@ def test_main_zeek_service_inactive_returns_exit_3():
         return 0
 
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", return_value=5
-                ):
+                with patch("seer_verify_install.count_pcap_files", return_value=5):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         return_value=[],
@@ -345,9 +297,7 @@ def test_main_zeek_service_inactive_returns_exit_3():
                                     "seer_verify_install._count_log_files",
                                     return_value=1,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             with patch("builtins.print") as p:
                                                 rc = svi.main(["prog"])
@@ -362,20 +312,14 @@ def test_main_empty_json_spool_is_nonfatal_returns_passed():
     counts = iter([5, 4])  # ring shrinks so mover check passes
 
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", side_effect=counts
-                ):
+                with patch("seer_verify_install.count_pcap_files", side_effect=counts):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         return_value=[],
                     ):
-                        with patch(
-                            "seer_verify_install.systemctl", return_value=0
-                        ):
+                        with patch("seer_verify_install.systemctl", return_value=0):
                             with patch(
                                 "seer_verify_install._latest_file",
                                 return_value="",
@@ -384,9 +328,7 @@ def test_main_empty_json_spool_is_nonfatal_returns_passed():
                                     "seer_verify_install._count_log_files",
                                     return_value=0,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             with patch("builtins.print") as p:
                                                 rc = svi.main(["prog"])
@@ -418,9 +360,7 @@ def test_create_dummy_pcaps_files_use_seer_dummy_prefix():
 
     assert len(created_names) == 3
     for name in created_names:
-        assert name.startswith("SEER-DUMMY-"), (
-            f"Expected SEER-DUMMY- prefix, got: {name}"
-        )
+        assert name.startswith("SEER-DUMMY-"), f"Expected SEER-DUMMY- prefix, got: {name}"
         assert name.endswith(".pcap"), f"Expected .pcap extension, got: {name}"
 
 
@@ -444,9 +384,7 @@ def test_create_dummy_pcaps_mtime_is_backdated_by_at_least_5_seconds():
     _atime, mtime = utime_calls[0]
     import time
 
-    assert mtime < time.time() - 5, (
-        "mtime should be at least 5 seconds in the past."
-    )
+    assert mtime < time.time() - 5, "mtime should be at least 5 seconds in the past."
 
 
 def test_main_dummy_count_equals_threshold_minus_count_before():
@@ -462,20 +400,14 @@ def test_main_dummy_count_equals_threshold_minus_count_before():
     counts = iter([2, 4, 3])
 
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", side_effect=counts
-                ):
+                with patch("seer_verify_install.count_pcap_files", side_effect=counts):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         side_effect=create_mock,
                     ):
-                        with patch(
-                            "seer_verify_install.systemctl", return_value=0
-                        ):
+                        with patch("seer_verify_install.systemctl", return_value=0):
                             with patch(
                                 "seer_verify_install._latest_file",
                                 return_value="",
@@ -484,15 +416,11 @@ def test_main_dummy_count_equals_threshold_minus_count_before():
                                     "seer_verify_install._count_log_files",
                                     return_value=1,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             svi.main(["prog"])
 
-    assert create_calls == [2], (
-        f"Expected 2 dummies created, got {create_calls}"
-    )
+    assert create_calls == [2], f"Expected 2 dummies created, got {create_calls}"
 
 
 def test_main_no_dummies_created_when_ring_meets_threshold():
@@ -506,20 +434,14 @@ def test_main_no_dummies_created_when_ring_meets_threshold():
     counts = iter([4, 3])  # before=4 (at threshold=4), after=3 (mover ran)
 
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", side_effect=counts
-                ):
+                with patch("seer_verify_install.count_pcap_files", side_effect=counts):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         side_effect=create_mock,
                     ):
-                        with patch(
-                            "seer_verify_install.systemctl", return_value=0
-                        ):
+                        with patch("seer_verify_install.systemctl", return_value=0):
                             with patch(
                                 "seer_verify_install._latest_file",
                                 return_value="",
@@ -528,15 +450,11 @@ def test_main_no_dummies_created_when_ring_meets_threshold():
                                     "seer_verify_install._count_log_files",
                                     return_value=1,
                                 ):
-                                    with patch(
-                                        "seer_verify_install.cleanup_dummy_pcaps"
-                                    ):
+                                    with patch("seer_verify_install.cleanup_dummy_pcaps"):
                                         with patch("time.sleep"):
                                             svi.main(["prog"])
 
-    assert create_calls == [], (
-        f"Expected no dummies created, got {create_calls}"
-    )
+    assert create_calls == [], f"Expected no dummies created, got {create_calls}"
 
 
 def test_main_cleanup_called_with_ring_dest_and_backlog_dirs():
@@ -544,20 +462,14 @@ def test_main_cleanup_called_with_ring_dest_and_backlog_dirs():
     cleanup_calls: list = []
 
     with patch("seer_verify_install.ensure_root"):
-        with patch(
-            "seer_verify_install.load_config", return_value=mock_config()
-        ):
+        with patch("seer_verify_install.load_config", return_value=mock_config()):
             with patch("os.path.isdir", return_value=True):
-                with patch(
-                    "seer_verify_install.count_pcap_files", return_value=5
-                ):
+                with patch("seer_verify_install.count_pcap_files", return_value=5):
                     with patch(
                         "seer_verify_install.create_dummy_pcaps",
                         return_value=[],
                     ):
-                        with patch(
-                            "seer_verify_install.systemctl", return_value=0
-                        ):
+                        with patch("seer_verify_install.systemctl", return_value=0):
                             with patch(
                                 "seer_verify_install._latest_file",
                                 return_value="",
@@ -568,9 +480,7 @@ def test_main_cleanup_called_with_ring_dest_and_backlog_dirs():
                                 ):
                                     with patch(
                                         "seer_verify_install.cleanup_dummy_pcaps",
-                                        side_effect=lambda r, d, b: (
-                                            cleanup_calls.append((r, d, b))
-                                        ),
+                                        side_effect=lambda r, d, b: cleanup_calls.append((r, d, b)),
                                     ):
                                         with patch("time.sleep"):
                                             svi.main(["prog"])

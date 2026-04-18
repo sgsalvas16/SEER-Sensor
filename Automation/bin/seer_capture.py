@@ -63,17 +63,13 @@ def main(argv: list) -> int:
     # Ensure ring directory exists
     try:
         os.makedirs(RING_DIR, exist_ok=True)
-    except (
-        Exception
-    ):  # Intentional isolation point — directory may already exist.
+    except Exception:  # Intentional isolation point — directory may already exist.
         pass
 
     # Best-effort chown
     try:
         subprocess.run(["chown", "seer:seer", RING_DIR], check=False)
-    except (
-        Exception
-    ):  # Intentional isolation point — chown failure is non-fatal.
+    except Exception:  # Intentional isolation point — chown failure is non-fatal.
         pass
 
     # Find tcpdump dynamically; exit 127 if not found.

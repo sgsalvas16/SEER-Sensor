@@ -328,10 +328,7 @@ def purge_export_drive() -> None:
         )
 
         if mounted:
-            say(
-                f"   - Export drive mounted at {mount_path}:"
-                f" purging SEER export files (pcap/)"
-            )
+            say(f"   - Export drive mounted at {mount_path}: purging SEER export files (pcap/)")
 
             pcap_dir = os.path.join(mount_path, "pcap")
             if os.path.isdir(pcap_dir):
@@ -344,20 +341,12 @@ def purge_export_drive() -> None:
             try:
                 for entry in os.listdir(mount_path):
                     entry_path = os.path.join(mount_path, entry)
-                    if (
-                        os.path.isdir(entry_path)
-                        and entry.startswith("pcap")
-                        and not os.listdir(entry_path)
-                    ):
+                    if os.path.isdir(entry_path) and entry.startswith("pcap") and not os.listdir(entry_path):
                         try:
                             os.rmdir(entry_path)
-                        except (
-                            Exception
-                        ):  # Intentional — skip dirs we can't remove.
+                        except Exception:  # Intentional — skip dirs we can't remove.
                             pass
-            except (
-                Exception
-            ):  # Intentional isolation point — mount may disappear.
+            except Exception:  # Intentional isolation point — mount may disappear.
                 pass
         else:
             warn(f"   - {mount_path} not mounted; skipping export purge")
@@ -412,14 +401,8 @@ def main(argv: List[str]) -> int:
     )
 
     if purge:
-        print(
-            "  - PURGE config   : /opt/seer"
-            " (incl. /opt/seer/etc/seer.yml backups)"
-        )
-        print(
-            "  - PURGE data     : /var/seer and"
-            " /var/lib/tcpdump/pcap_ring (PCAPs WILL BE DELETED)"
-        )
+        print("  - PURGE config   : /opt/seer (incl. /opt/seer/etc/seer.yml backups)")
+        print("  - PURGE data     : /var/seer and /var/lib/tcpdump/pcap_ring (PCAPs WILL BE DELETED)")
         print(
             "  - PURGE export   : if an export drive is mounted at configured"
             " mount point(s), delete SEER 'pcap/' contents on that drive"
@@ -463,9 +446,7 @@ def main(argv: List[str]) -> int:
 
     run_best_effort(["pkill", "-x", "tcpdump"], stderr=subprocess.DEVNULL)
     run_best_effort(["pkill", "-x", "zeek"], stderr=subprocess.DEVNULL)
-    run_best_effort(
-        ["pkill", "-f", "seer_hotswap.py"], stderr=subprocess.DEVNULL
-    )
+    run_best_effort(["pkill", "-f", "seer_hotswap.py"], stderr=subprocess.DEVNULL)
 
     for _ in (1, 2, 3, 4, 5):
         time.sleep(1)
@@ -477,17 +458,11 @@ def main(argv: List[str]) -> int:
             break
 
     if is_process_running_exact("tcpdump"):
-        run_best_effort(
-            ["pkill", "-9", "-x", "tcpdump"], stderr=subprocess.DEVNULL
-        )
+        run_best_effort(["pkill", "-9", "-x", "tcpdump"], stderr=subprocess.DEVNULL)
     if is_process_running_exact("zeek"):
-        run_best_effort(
-            ["pkill", "-9", "-x", "zeek"], stderr=subprocess.DEVNULL
-        )
+        run_best_effort(["pkill", "-9", "-x", "zeek"], stderr=subprocess.DEVNULL)
     if is_process_running_pattern("seer_hotswap.py"):
-        run_best_effort(
-            ["pkill", "-9", "-f", "seer_hotswap.py"], stderr=subprocess.DEVNULL
-        )
+        run_best_effort(["pkill", "-9", "-f", "seer_hotswap.py"], stderr=subprocess.DEVNULL)
 
     for path in glob.glob("/run/zeek-*.pid"):
         remove_file_if_present(path)
